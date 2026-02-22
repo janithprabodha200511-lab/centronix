@@ -717,23 +717,26 @@ async function loadServicesFromFirebase() {
         var services = [];
         snapshot.forEach(function(doc) {
             var d = doc.data();
+            d._id = doc.id;
             if (d.status === 'active') {
                 services.push(d);
             }
         });
 
-        // If no services in Firebase, keep default HTML
         if (services.length === 0) {
             console.log('No services in Firebase, using defaults');
             return;
         }
+
+        // Store services data globally for modal
+        window.firebaseServices = services;
 
         var html = '';
         services.forEach(function(s, index) {
             var imgSrc = s.image || 'https://placehold.co/600x400/0f172a/334155?text=' + encodeURIComponent(s.name || 'Service');
             var delay = (index + 1) * 100;
 
-            html += '<div class="service-card" data-aos="fade-up" data-aos-delay="' + delay + '">' +
+            html += '<div class="service-card" onclick="openServiceDetail(' + index + ')" data-aos="fade-up" data-aos-delay="' + delay + '">' +
                 '<img src="' + imgSrc + '" class="service-img" alt="' + escapeHtml(s.name || '') + '" loading="lazy" onerror="this.src=\'https://placehold.co/600x400/0f172a/334155?text=Service\'">' +
                 '<div class="service-info">' +
                     '<div>' +
@@ -1038,6 +1041,75 @@ async function loadServicesFromFirebase() {
             mobile: { icon: 'fa-solid fa-mobile-screen', title: 'Mobile Applications', desc: 'Cross-platform mobile apps for iOS and Android.', features: ['Flutter Development', 'React Native', 'App Store Deploy', 'Push Notifications', 'Offline Support', 'Analytics'], stack: ['Flutter', 'Dart', 'React Native', 'Firebase', 'SQLite', 'REST APIs'] },
             market: { icon: 'fa-solid fa-chart-line', title: 'Digital Growth', desc: 'Data-driven marketing strategies for visibility and conversions.', features: ['SEO', 'Performance Marketing', 'Social Media', 'CRO', 'Analytics', 'Content Strategy'], stack: ['Google Analytics', 'Meta Ads', 'Google Ads', 'SEMrush', 'HubSpot', 'Hotjar'] }
         };
+
+// =========================================
+// OPEN SERVICE DETAIL FROM FIREBASE
+// =========================================
+function openServiceDetail(index) {
+    var services = window.firebaseServices;
+    if (!services || !services[index]) {
+        // Fallback to old modal system
+        return;
+    }
+
+    var s = services[index];
+    var mb = document.getElementById('modalBody');
+    if (!mb) return;
+
+    // Build features list
+    var featHtml = '';
+    var features = s.features || '';
+    if (typeof features === 'string' && features.length > 0) {
+        var featArr = features.split('\n');
+        for (var i = 0; i < featArr.length; i++) {
+            var f = featArr[i].trim();
+            if (f) {
+                featHtml += '<li style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">' +
+                    '<i class="fa-solid fa-check" style="color:var(--accent);font-size:0.8rem;flex-shrink:0;"></i> ' +
+                    escapeHtml(f) + '</li>';
+            }
+        }
+    }
+
+    // Build tech stack
+    var stackHtml = '';
+    var techStack = s.techStack || '';
+    if (typeof techStack === 'string' && techStack.length > 0) {
+        var techArr = techStack.split(',');
+        for (var j = 0; j < techArr.length; j++) {
+            var t = techArr[j].trim();
+            if (t) {
+                stackHtml += '<span class="tech-tag">' + escapeHtml(t) + '</span>';
+            }
+        }
+    }
+
+    // Icon
+    var iconClass = s.icon || 'fa-solid fa-cog';
+
+    // Full description
+    var fullDesc = s.fullDesc || s.shortDesc || '';
+
+    mb.innerHTML =
+        '<div style="display:flex;align-items:center;gap:15px;margin-bottom:2rem;">' +
+            '<div style="width:50px;height:50px;background:var(--grad-glow);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+                '<i class="' + iconClass + '" style="font-size:1.3rem;color:white;"></i>' +
+            '</div>' +
+            '<h2 style="font-family:\'Space Grotesk\';font-size:clamp(1.3rem,3vw,1.8rem);">' + escapeHtml(s.name || 'Service') + '</h2>' +
+        '</div>' +
+        '<p style="color:var(--text-muted);line-height:1.8;margin-bottom:2rem;font-size:0.95rem;">' + escapeHtml(fullDesc) + '</p>' +
+        (featHtml ? '<h4 style="color:white;margin-bottom:1rem;font-family:\'Space Grotesk\';">What\'s Included:</h4><ul style="list-style:none;margin-bottom:2rem;">' + featHtml + '</ul>' : '') +
+        (stackHtml ? '<h4 style="color:white;margin-bottom:1rem;font-family:\'Space Grotesk\';">Tech Stack:</h4><div style="margin-bottom:2rem;display:flex;flex-wrap:wrap;gap:8px;">' + stackHtml + '</div>' : '') +
+        '<a href="#contact" class="btn-header" onclick="closeModal()" style="display:inline-flex;padding:12px 30px;">' +
+            'Start This Project <i class="fa-solid fa-arrow-right" style="margin-left:8px;"></i>' +
+        '</a>';
+
+    var modal = document.getElementById('serviceModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+}
         function openModal(type) {
             var data = serviceData[type]; if (!data) return;
             var mb = document.getElementById('modalBody'); if (!mb) return;
