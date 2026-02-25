@@ -993,58 +993,6 @@ async function loadServicesFromFirebase() {
             } catch (e) { console.error('Chat config error:', e); }
         }
 
-// =========================================
-// 5. MASTER LOADER + PRELOADER
-// =========================================
-var preloaderHidden = false;
-function hidePreloader() {
-    if (preloaderHidden) return;
-    preloaderHidden = true;
-    var preloader = document.getElementById('preloader');
-    if (preloader) {
-        preloader.style.opacity = '0';
-        preloader.style.pointerEvents = 'none';
-        setTimeout(function() { preloader.style.display = 'none'; }, 400);
-    }
-    if (typeof AOS !== 'undefined') {
-        AOS.init({ duration: 800, once: true, offset: 80, easing: 'ease-out-cubic' });
-    }
-    var reveals = document.querySelectorAll('.reveal');
-    for (var i = 0; i < reveals.length; i++) {
-        reveals[i].classList.add('active');
-    }
-}
-
-window.addEventListener('load', function() {
-    var status = document.getElementById('loadStatus');
-    setTimeout(function() { if (status) status.innerText = "LOADING..."; }, 200);
-    setTimeout(function() { if (status) status.innerText = "ALMOST READY..."; }, 800);
-
-    Promise.allSettled([
-        loadCompanyData(),
-        loadTestimonialsFromFirebase(),
-        loadPortfolioFromFirebase(),
-        loadServicesFromFirebase(),
-        loadBotResponsesFromFirebase(),
-        loadChatConfigFromFirebase()
-    ]).then(function() {
-        console.log('✅ All data loaded');
-        hidePreloader();
-    }).catch(function(e) {
-        console.error('Load error:', e);
-        showDefaultTestimonials();
-        hidePreloader();
-    });
-
-    setTimeout(function() { hidePreloader(); }, 1500);
-
-    setTimeout(function() {
-        var preloader = document.getElementById('preloader');
-        if (preloader && preloader.style.display !== 'none') {
-            preloader.style.display = 'none';
-        }
-    }, 3000);
-});
 
 
         // =========================================
@@ -1471,4 +1419,5 @@ function openServiceDetail(index) {
     </script>
 </body>
 </html>
+
 
