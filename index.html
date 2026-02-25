@@ -919,6 +919,68 @@ async function loadTestimonialsFromFirebase() {
                 if (activeCount > 0) { section.style.display = 'block'; section.classList.add('visible'); } else { section.style.display = 'none'; }
             }).catch(function(error) { console.error('Portfolio error:', error); section.style.display = 'none'; });
         }
+
+
+        // =========================================
+// 5. MASTER LOADER + FAST PRELOADER
+// =========================================
+
+var preloaderHidden = false;
+
+function hidePreloader() {
+    if (preloaderHidden) return;
+    preloaderHidden = true;
+
+    var preloader = document.getElementById('preloader');
+    if (preloader) {
+        preloader.style.opacity = '0';
+        preloader.style.pointerEvents = 'none';
+        setTimeout(function () {
+            preloader.style.display = 'none';
+        }, 300);
+    }
+
+    // Init animations immediately
+    if (typeof AOS !== 'undefined') {
+        AOS.init({
+            duration: 700,
+            once: true,
+            offset: 60
+        });
+    }
+
+    document.querySelectorAll('.reveal').forEach(function (el) {
+        el.classList.add('active');
+    });
+}
+
+// 🚀 LOAD FAST ON DOM READY (not full window load)
+document.addEventListener('DOMContentLoaded', function () {
+
+    var status = document.getElementById('loadStatus');
+    if (status) status.innerText = "Loading...";
+
+    // 🔥 Hide preloader VERY FAST
+    setTimeout(hidePreloader, 500);
+
+    // 🔄 Load Firebase data in background (non-blocking)
+    setTimeout(function () {
+
+        loadCompanyData().catch(console.error);
+        loadTestimonialsFromFirebase().catch(console.error);
+        loadPortfolioFromFirebase().catch(console.error);
+        loadServicesFromFirebase().catch(console.error);
+        loadBotResponsesFromFirebase().catch(console.error);
+        loadChatConfigFromFirebase().catch(console.error);
+
+        console.log("⚡ Background data loading started");
+
+    }, 600);
+
+});
+
+// 🛑 Safety fallback
+setTimeout(hidePreloader, 2000);
 // =========================================
 // SERVICES LOADER FROM FIREBASE
 // =========================================
@@ -1419,5 +1481,6 @@ function openServiceDetail(index) {
     </script>
 </body>
 </html>
+
 
 
