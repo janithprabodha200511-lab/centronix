@@ -1,1486 +1,2300 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centronix | Architecture of Intelligence</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>Centronix | Architecture of Intelligence</title>
+<meta name="description" content="Centronix - Architecture of Intelligence. Enterprise-grade web systems, AI integrations, and mobile applications.">
+<meta name="keywords" content="web development, AI, mobile apps, Sri Lanka, software company, Centronix">
+<meta name="author" content="Centronix">
+<link rel="icon" type="image/png" href="centronix_logo_only.png">
+<link rel="apple-touch-icon" href="centronix_logo_only.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root {
+--primary: #8b5cf6;
+--accent: #06b6d4;
+--bg-deep: #02040a;
+--bg-glass: rgba(255, 255, 255, 0.03);
+--border: rgba(255, 255, 255, 0.08);
+--text-main: #ffffff;
+--text-muted: #94a3b8;
+--grad-glow: linear-gradient(90deg, #7c3aed, #0891b2);
+--success: #22c55e;
+--danger: #ef4444;
+}
 
-    <meta name="description" content="Centronix - Architecture of Intelligence. Enterprise-grade web systems, AI integrations, and mobile applications.">
-    <meta name="keywords" content="web development, AI, mobile apps, Sri Lanka, software company, Centronix">
-    <meta name="author" content="Centronix">
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; font-size: 16px; }
+body {
+font-family: 'Inter', sans-serif;
+background-color: var(--bg-deep);
+color: var(--text-main);
+overflow-x: hidden;
+line-height: 1.7;
+-webkit-text-size-adjust: 100%;
+-ms-text-size-adjust: 100%;
+}
 
-    <link rel="icon" type="image/png" href="centronix_logo_only.png">
-    <link rel="apple-touch-icon" href="centronix_logo_only.png">
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+.container { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
+.section { padding: 8rem 0; position: relative; }
+.gradient-text {
+background: linear-gradient(to right, var(--primary), var(--accent));
+-webkit-background-clip: text;
+background-clip: text;
+-webkit-text-fill-color: transparent;
+font-weight: 700;
+}
 
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+/* PRELOADER */
+#preloader {
+position: fixed; inset: 0; background: #000; z-index: 10000;
+display: flex; flex-direction: column; justify-content: center; align-items: center;
+transition: opacity 0.6s ease;
+}
+.logo-3d-wrapper { perspective: 1000px; width: 100px; height: 100px; margin-bottom: 2rem; }
+.preloader-logo {
+width: 100%; height: 100%; object-fit: contain;
+animation: spinY 3s infinite linear;
+filter: drop-shadow(0 0 20px var(--primary));
+}
+.loader-bar-container { width: 200px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 1rem; overflow: hidden; }
+.loader-bar { width: 0%; height: 100%; background: var(--grad-glow); border-radius: 10px; animation: loadBar 1.2s ease forwards; }
+.loader-status { font-family: 'Space Grotesk', monospace; color: var(--accent); font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase; animation: pulse 1.5s infinite; }
 
-    <style>
-        :root {
-            --primary: #8b5cf6;
-            --accent: #06b6d4;
-            --bg-deep: #02040a;
-            --bg-glass: rgba(255, 255, 255, 0.03);
-            --border: rgba(255, 255, 255, 0.08);
-            --text-main: #ffffff;
-            --text-muted: #94a3b8;
-            --grad-glow: linear-gradient(90deg, #7c3aed, #0891b2);
-            --success: #22c55e;
-            --danger: #ef4444;
-        }
+@keyframes spinY { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+@keyframes loadBar { 0% { width: 0%; } 100% { width: 100%; } }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        html { scroll-behavior: smooth; font-size: 16px; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-deep);
-            color: var(--text-main);
-            overflow-x: hidden;
-            line-height: 1.7;
-        }
-
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-deep); }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
-
-        .container { max-width: 1280px; margin: 0 auto; padding: 0 2rem; }
-        .section { padding: 8rem 0; position: relative; }
-        .gradient-text {
-            background: linear-gradient(to right, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 700;
-        }
-
-        /* PRELOADER */
-        #preloader {
-            position: fixed; inset: 0; background: #000; z-index: 10000;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 0.6s ease;
-        }
-        .logo-3d-wrapper { perspective: 1000px; width: 100px; height: 100px; margin-bottom: 2rem; }
-        .preloader-logo {
-            width: 100%; height: 100%; object-fit: contain;
-            animation: spinY 3s infinite linear;
-            filter: drop-shadow(0 0 20px var(--primary));
-        }
-        .loader-bar-container { width: 200px; height: 3px; background: rgba(255,255,255,0.1); border-radius: 10px; margin-top: 1rem; overflow: hidden; }
-        .loader-bar { width: 0%; height: 100%; background: var(--grad-glow); border-radius: 10px; animation: loadBar 1.2s ease forwards; }
-        .loader-status { font-family: 'Space Grotesk', monospace; color: var(--accent); font-size: 0.9rem; letter-spacing: 3px; text-transform: uppercase; animation: pulse 1.5s infinite; }
-        @keyframes spinY { 0% { transform: rotateY(0deg); } 100% { transform: rotateY(360deg); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-        @keyframes loadBar { 0% { width: 0%; } 100% { width: 100%; } }
-
- /* ==========================================
-   NAVBAR - FULL REWRITE
+/* ==========================================
+   NAVBAR
    ========================================== */
 .navbar {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 90%;
-    max-width: 1100px;
-    height: 70px;
-    z-index: 1000;
-    background: rgba(10, 10, 25, 0.6);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 100px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0 10px 0 30px;
-    transition: all 0.4s ease;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+position: fixed;
+top: 20px;
+left: 50%;
+transform: translateX(-50%);
+width: 90%;
+max-width: 1100px;
+height: 70px;
+z-index: 1000;
+background: rgba(10, 10, 25, 0.6);
+backdrop-filter: blur(25px);
+-webkit-backdrop-filter: blur(25px);
+border: 1px solid rgba(255,255,255,0.08);
+border-radius: 100px;
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 0 10px 0 30px;
+transition: all 0.4s ease;
+box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 .navbar.scrolled {
-    top: 10px;
-    width: 95%;
-    height: 60px;
-    background: rgba(5, 5, 10, 0.95);
+top: 10px;
+width: 95%;
+height: 60px;
+background: rgba(5, 5, 10, 0.95);
 }
 .navbar.hidden {
-    transform: translateX(-50%) translateY(-120px);
+transform: translateX(-50%) translateY(-120px);
 }
 
 /* LOGO */
 .logo {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    flex-shrink: 0;
+display: flex;
+align-items: center;
+gap: 8px;
+text-decoration: none;
+flex-shrink: 0;
 }
 .logo img {
-    height: 30px;
-    object-fit: contain;
-    transition: 0.3s;
+height: 30px;
+object-fit: contain;
+transition: 0.3s;
 }
 .logo img.logo-word {
-    height: 60px;
+height: 60px;
 }
 .logo:hover img {
-    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5));
+filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.5));
 }
 
-/* NAV CENTER - Links */
+/* NAV CENTER */
 .nav-center {
-    display: flex;
-    gap: 2px;
-    align-items: center;
+display: flex;
+gap: 2px;
+align-items: center;
 }
 .nav-link {
-    padding: 8px 14px;
-    color: var(--text-muted);
-    text-decoration: none;
-    font-size: 0.83rem;
-    font-weight: 500;
-    border-radius: 30px;
-    transition: 0.3s;
-    white-space: nowrap;
+padding: 8px 14px;
+color: var(--text-muted);
+text-decoration: none;
+font-size: 0.83rem;
+font-weight: 500;
+border-radius: 30px;
+transition: 0.3s;
+white-space: nowrap;
 }
 .nav-link:hover {
-    color: white;
-    background: rgba(255,255,255,0.08);
+color: white;
+background: rgba(255,255,255,0.08);
 }
 .nav-link.active {
-    color: white;
-    background: rgba(255,255,255,0.12);
+color: white;
+background: rgba(255,255,255,0.12);
 }
 
 /* NAV RIGHT */
 .nav-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
+display: flex;
+align-items: center;
+gap: 10px;
+flex-shrink: 0;
 }
 
 /* START PROJECT BUTTON */
 .btn-header {
-    padding: 10px 25px;
-    border-radius: 50px;
-    background: var(--grad-glow);
-    color: white;
-    font-weight: 600;
-    font-size: 0.9rem;
-    text-decoration: none;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
-    transition: 0.3s;
-    font-family: 'Inter', sans-serif;
-    cursor: pointer;
+padding: 10px 25px;
+border-radius: 50px;
+background: var(--grad-glow);
+color: white;
+font-weight: 600;
+font-size: 0.9rem;
+text-decoration: none;
+border: none;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+transition: 0.3s;
+font-family: 'Inter', sans-serif;
+cursor: pointer;
 }
 .btn-header:hover {
-    transform: scale(1.05);
-    box-shadow: 0 0 30px rgba(6, 182, 212, 0.6);
+transform: scale(1.05);
+box-shadow: 0 0 30px rgba(6, 182, 212, 0.6);
 }
 
-/* MOBILE MENU BUTTON - HIDDEN BY DEFAULT */
+/* MOBILE MENU BUTTON */
 .mobile-menu-btn {
-    display: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 10px 15px;
-    background: none;
-    border: none;
-    z-index: 1001;
-    position: relative;
+display: none;
+color: white;
+font-size: 1.5rem;
+cursor: pointer;
+padding: 10px 15px;
+background: none;
+border: none;
+z-index: 1001;
+position: relative;
+-webkit-tap-highlight-color: transparent;
 }
 
 /* MOBILE OVERLAY */
 .mobile-nav-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(2, 4, 10, 0.98);
-    z-index: 9990;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 2rem;
-    transform: translateX(100%);
-    transition: 0.4s ease;
+position: fixed;
+inset: 0;
+background: rgba(2, 4, 10, 0.98);
+z-index: 9990;
+display: flex;
+flex-direction: column;
+justify-content: center;
+align-items: center;
+gap: 2rem;
+transform: translateX(100%);
+transition: 0.4s ease;
 }
 .mobile-nav-overlay.active {
-    transform: translateX(0);
+transform: translateX(0);
 }
 .mobile-nav-link {
-    font-size: 1.8rem;
-    color: white;
-    text-decoration: none;
-    font-family: 'Space Grotesk';
-    transition: 0.3s;
-    display: block;
-    padding: 10px 20px;
+font-size: 1.8rem;
+color: white;
+text-decoration: none;
+font-family: 'Space Grotesk';
+transition: 0.3s;
+display: block;
+padding: 10px 20px;
 }
 .mobile-nav-link:hover {
-    color: var(--primary);
+color: var(--primary);
 }
 .mobile-close {
-    position: absolute;
-    top: 30px;
-    right: 30px;
-    color: white;
-    font-size: 2.5rem;
-    cursor: pointer;
-    background: none;
-    border: none;
-    z-index: 9991;
-    padding: 10px;
+position: absolute;
+top: 30px;
+right: 30px;
+color: white;
+font-size: 2.5rem;
+cursor: pointer;
+background: none;
+border: none;
+z-index: 9991;
+padding: 10px;
+-webkit-tap-highlight-color: transparent;
 }
 
-        /* HERO */
-        .hero { height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; position: relative; overflow: hidden; }
-        .hero-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; filter: none; }
-        .hero-overlay { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); }
-        .hero-badge { display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px; border: 1px solid rgba(255,255,255,0.15); border-radius: 50px; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); font-size: 0.85rem; color: var(--accent); margin-bottom: 2rem; margin-top: 20px; }
-        .status-dot { width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); animation: pulse 2s infinite; }
-        .hero h1 { font-family: 'Space Grotesk'; font-size: clamp(2.5rem, 8vw, 5.5rem); font-weight: 700; line-height: 1.1; margin-bottom: 1.5rem; letter-spacing: -1px; }
-        .hero p { font-size: clamp(1rem, 2.5vw, 1.2rem); color: var(--text-muted); max-width: 650px; margin: 0 auto 3rem; }
-        .hero-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 2rem; }
-        .btn-outline { padding: 14px 35px; font-size: 1rem; border-radius: 50px; border: 1px solid var(--border); color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); background: rgba(255,255,255,0.05); }
+/* HERO */
+.hero {
+height: 100vh;
+display: flex;
+align-items: center;
+justify-content: center;
+text-align: center;
+position: relative;
+overflow: hidden;
+}
+.hero-video {
+position: absolute;
+top: 0; left: 0;
+width: 100%; height: 100%;
+object-fit: cover;
+z-index: -1;
+filter: none;
+}
+.hero-overlay { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.4); }
+.hero-badge {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+padding: 8px 20px;
+border: 1px solid rgba(255,255,255,0.15);
+border-radius: 50px;
+background: rgba(0,0,0,0.4);
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+font-size: 0.85rem;
+color: var(--accent);
+margin-bottom: 2rem;
+margin-top: 20px;
+}
+.status-dot {
+width: 8px; height: 8px;
+background: var(--success);
+border-radius: 50%;
+box-shadow: 0 0 10px var(--success);
+animation: pulse 2s infinite;
+}
+.hero h1 {
+font-family: 'Space Grotesk';
+font-size: clamp(2.5rem, 8vw, 5.5rem);
+font-weight: 700;
+line-height: 1.1;
+margin-bottom: 1.5rem;
+letter-spacing: -1px;
+}
+.hero p {
+font-size: clamp(1rem, 2.5vw, 1.2rem);
+color: var(--text-muted);
+max-width: 650px;
+margin: 0 auto 3rem;
+}
+.hero-content {
+position: relative;
+z-index: 2;
+padding: 0 1rem;
+}
+.hero-buttons {
+display: flex;
+gap: 15px;
+justify-content: center;
+flex-wrap: wrap;
+margin-top: 2rem;
+}
+.btn-outline {
+padding: 14px 35px;
+font-size: 1rem;
+border-radius: 50px;
+border: 1px solid var(--border);
+color: white;
+text-decoration: none;
+display: inline-flex;
+align-items: center;
+gap: 8px;
+transition: 0.3s;
+backdrop-filter: blur(5px);
+-webkit-backdrop-filter: blur(5px);
+background: rgba(255,255,255,0.05);
+}
 .btn-outline:hover { border-color: var(--primary); background: rgba(139,92,246,0.1); }
-        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
-        /* STATS */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; padding: 2.5rem; border: 1px solid var(--border); border-radius: 20px; background: rgba(255,255,255,0.02); text-align: center; margin-top: -5rem; z-index: 5; position: relative; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-        .stat-item { padding: 1rem; transition: 0.3s; border-radius: 12px; }
-        .stat-item:hover { background: rgba(255,255,255,0.05); transform: translateY(-3px); }
-        .stat-num { font-family: 'Space Grotesk'; font-size: clamp(1.8rem, 4vw, 2.5rem); color: white; font-weight: 700; }
-        .stat-label { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem; }
+/* STATS */
+.stats-grid {
+display: grid;
+grid-template-columns: repeat(4, 1fr);
+gap: 1.5rem;
+padding: 2.5rem;
+border: 1px solid var(--border);
+border-radius: 20px;
+background: rgba(255,255,255,0.02);
+text-align: center;
+margin-top: -5rem;
+z-index: 5;
+position: relative;
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+}
+.stat-item { padding: 1rem; transition: 0.3s; border-radius: 12px; }
+.stat-item:hover { background: rgba(255,255,255,0.05); transform: translateY(-3px); }
+.stat-num {
+font-family: 'Space Grotesk';
+font-size: clamp(1.8rem, 4vw, 2.5rem);
+color: white;
+font-weight: 700;
+}
+.stat-label { color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem; }
 
-        /* ABOUT */
-        .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
-        .about-img-box { border-radius: 20px; overflow: hidden; border: none; background: none; }
-.about-img-box img { width: 100%; height: auto; max-height: 550px; object-fit: cover; transition: 0.5s; filter: grayscale(0%); display: block; border-radius: 20px; }
+/* ABOUT */
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+.about-img-box { border-radius: 20px; overflow: hidden; border: none; background: none; }
+.about-img-box img {
+width: 100%; height: auto; max-height: 550px;
+object-fit: cover; transition: 0.5s; filter: grayscale(0%);
+display: block; border-radius: 20px;
+}
 .about-img-box:hover img { transform: scale(1.03); }
-        .about-feature { padding: 1.5rem; background: var(--bg-glass); border: 1px solid var(--border); border-radius: 16px; transition: 0.3s; }
-        .about-feature:hover { border-color: var(--primary); background: rgba(139, 92, 246, 0.05); transform: translateY(-3px); }
-        .about-features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.about-feature {
+padding: 1.5rem;
+background: var(--bg-glass);
+border: 1px solid var(--border);
+border-radius: 16px;
+transition: 0.3s;
+}
+.about-feature:hover {
+border-color: var(--primary);
+background: rgba(139, 92, 246, 0.05);
+transform: translateY(-3px);
+}
+.about-features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
 
-        /* SERVICES */
-        .section-label { color: var(--accent); font-size: 0.85rem; letter-spacing: 3px; text-transform: uppercase; text-align: center; display: block; margin-bottom: 1rem; }
-        .section-title { font-family: 'Space Grotesk'; font-size: clamp(2rem, 5vw, 2.5rem); text-align: center; margin-bottom: 4rem; }
-        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; }
-        .service-card { background: var(--bg-glass); border: 1px solid var(--border); border-radius: 24px; overflow: hidden; transition: 0.4s; height: 480px; display: flex; flex-direction: column; cursor: pointer; }
-        .service-img { width: 100%; height: 240px; object-fit: cover; border-bottom: 1px solid var(--border); transition: 0.5s; filter: grayscale(100%); display: block; }
-        .service-info { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
-        .service-info h3 { font-family: 'Space Grotesk'; margin-bottom: 0.5rem; }
-        .service-info p { color: var(--text-muted); font-size: 0.9rem; }
-        .service-card:hover { transform: translateY(-10px); border-color: var(--primary); box-shadow: 0 20px 50px rgba(139, 92, 246, 0.15); }
-        .service-card:hover .service-img { filter: grayscale(0%); }
-        .arrow-link { color: var(--accent); font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; gap: 5px; transition: 0.3s; }
-        .arrow-link:hover { gap: 10px; }
+/* SERVICES */
+.section-label {
+color: var(--accent);
+font-size: 0.85rem;
+letter-spacing: 3px;
+text-transform: uppercase;
+text-align: center;
+display: block;
+margin-bottom: 1rem;
+}
+.section-title {
+font-family: 'Space Grotesk';
+font-size: clamp(2rem, 5vw, 2.5rem);
+text-align: center;
+margin-bottom: 4rem;
+}
+.services-grid {
+display: grid;
+grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+gap: 2rem;
+}
+.service-card {
+background: var(--bg-glass);
+border: 1px solid var(--border);
+border-radius: 24px;
+overflow: hidden;
+transition: 0.4s;
+height: 480px;
+display: flex;
+flex-direction: column;
+cursor: pointer;
+}
+.service-img {
+width: 100%; height: 240px;
+object-fit: cover;
+border-bottom: 1px solid var(--border);
+transition: 0.5s;
+filter: grayscale(100%);
+display: block;
+}
+.service-info {
+padding: 1.5rem;
+flex: 1;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+}
+.service-info h3 { font-family: 'Space Grotesk'; margin-bottom: 0.5rem; }
+.service-info p { color: var(--text-muted); font-size: 0.9rem; }
+.service-card:hover {
+transform: translateY(-10px);
+border-color: var(--primary);
+box-shadow: 0 20px 50px rgba(139, 92, 246, 0.15);
+}
+.service-card:hover .service-img { filter: grayscale(0%); }
+.arrow-link {
+color: var(--accent);
+font-size: 0.9rem;
+font-weight: 600;
+display: flex;
+align-items: center;
+gap: 5px;
+transition: 0.3s;
+}
+.arrow-link:hover { gap: 10px; }
 
-        /* FEATURED */
-        .featured-project { background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)); border: 1px solid var(--border); border-radius: 32px; padding: 3rem; display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 3rem; align-items: center; }
-        .project-mockup img { width: 100%; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.6); transition: 0.5s; display: block; }
-        .project-mockup:hover img { transform: translateY(-10px); }
-        .tech-tag { padding: 5px 15px; border: 1px solid var(--border); border-radius: 20px; font-size: 0.8rem; color: white; display: inline-block; margin-right: 8px; margin-bottom: 8px; transition: 0.3s; }
-        .tech-tag:hover { border-color: var(--primary); background: rgba(139, 92, 246, 0.1); }
+/* FEATURED */
+.featured-project {
+background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+border: 1px solid var(--border);
+border-radius: 32px;
+padding: 3rem;
+display: grid;
+grid-template-columns: 1.2fr 0.8fr;
+gap: 3rem;
+align-items: center;
+}
+.project-mockup img {
+width: 100%;
+border-radius: 20px;
+box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+transition: 0.5s;
+display: block;
+}
+.project-mockup:hover img { transform: translateY(-10px); }
+.tech-tag {
+padding: 5px 15px;
+border: 1px solid var(--border);
+border-radius: 20px;
+font-size: 0.8rem;
+color: white;
+display: inline-block;
+margin-right: 8px;
+margin-bottom: 8px;
+transition: 0.3s;
+}
+.tech-tag:hover { border-color: var(--primary); background: rgba(139, 92, 246, 0.1); }
 
-        /* TESTIMONIALS */
-        .testimonials-wrapper { display: flex; gap: 1.5rem; overflow-x: auto; padding: 2rem 0; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; align-items: stretch; }
+/* TESTIMONIALS */
+.testimonials-wrapper {
+display: flex;
+gap: 1.5rem;
+overflow-x: auto;
+padding: 2rem 0;
+scroll-snap-type: x mandatory;
+-webkit-overflow-scrolling: touch;
+scrollbar-width: none;
+align-items: stretch;
+}
 .testimonials-wrapper::-webkit-scrollbar { display: none; }
-.testimonial-card { min-width: 340px; max-width: 380px; background: var(--bg-glass); border: 1px solid var(--border); border-radius: 24px; padding: 2rem; scroll-snap-align: start; transition: 0.3s; flex-shrink: 0; display: flex; flex-direction: column; justify-content: space-between; min-height: 280px; }
+.testimonial-card {
+min-width: 340px;
+max-width: 380px;
+background: var(--bg-glass);
+border: 1px solid var(--border);
+border-radius: 24px;
+padding: 2rem;
+scroll-snap-align: start;
+transition: 0.3s;
+flex-shrink: 0;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+min-height: 280px;
+}
 .testimonial-card:hover { border-color: var(--primary); transform: translateY(-5px); }
 .testimonial-top { flex: 1; }
 .testimonial-stars { color: #fbbf24; margin-bottom: 1rem; font-size: 1rem; letter-spacing: 2px; }
 .testimonial-text { color: var(--text-muted); font-size: 0.9rem; line-height: 1.7; }
-.testimonial-author { display: flex; align-items: center; gap: 12px; margin-top: 1.5rem; padding-top: 1.2rem; border-top: 1px solid var(--border); }
-.testimonial-avatar { width: 42px; height: 42px; border-radius: 50%; background: var(--grad-glow); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; color: white; }
+.testimonial-author {
+display: flex;
+align-items: center;
+gap: 12px;
+margin-top: 1.5rem;
+padding-top: 1.2rem;
+border-top: 1px solid var(--border);
+}
+.testimonial-avatar {
+width: 42px; height: 42px;
+border-radius: 50%;
+background: var(--grad-glow);
+display: flex;
+align-items: center;
+justify-content: center;
+font-weight: 700;
+font-size: 1rem;
+flex-shrink: 0;
+color: white;
+}
 .testimonial-name { font-weight: 600; font-size: 0.9rem; color: white; }
 .testimonial-position { color: var(--text-muted); font-size: 0.78rem; margin-top: 2px; }
 
-        /* PORTFOLIO */
-        #portfolioShowcase { display: none; }
-        #portfolioShowcase.visible { display: block; }
-        .portfolio-showcase { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; }
-        .portfolio-card { background: var(--bg-glass); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; transition: 0.4s; }
-        .portfolio-card:hover { transform: translateY(-8px); border-color: var(--primary); box-shadow: 0 20px 50px rgba(139, 92, 246, 0.15); }
-        .portfolio-card img { width: 100%; height: 200px; object-fit: cover; border-bottom: 1px solid var(--border); filter: grayscale(30%); transition: 0.5s; display: block; }
-        .portfolio-card:hover img { filter: grayscale(0%); }
-        .portfolio-card-info { padding: 1.5rem; }
-        .portfolio-card-info h3 { font-family: 'Space Grotesk'; font-size: 1.1rem; margin-bottom: 0.5rem; }
-        .portfolio-card-info p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; line-height: 1.6; }
-        .portfolio-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
-        .portfolio-card-tags span { padding: 3px 10px; border: 1px solid var(--border); border-radius: 15px; font-size: 0.75rem; color: var(--accent); }
-        .portfolio-link { color: var(--accent); font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 5px; margin-top: 1rem; text-decoration: none; transition: 0.3s; }
-        .portfolio-link:hover { gap: 10px; }
-        .portfolio-category { display: inline-block; padding: 3px 10px; background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+/* PORTFOLIO */
+#portfolioShowcase { display: none; }
+#portfolioShowcase.visible { display: block; }
+.portfolio-showcase {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+gap: 2rem;
+}
+.portfolio-card {
+background: var(--bg-glass);
+border: 1px solid var(--border);
+border-radius: 20px;
+overflow: hidden;
+transition: 0.4s;
+}
+.portfolio-card:hover {
+transform: translateY(-8px);
+border-color: var(--primary);
+box-shadow: 0 20px 50px rgba(139, 92, 246, 0.15);
+}
+.portfolio-card img {
+width: 100%; height: 200px;
+object-fit: cover;
+border-bottom: 1px solid var(--border);
+filter: grayscale(30%);
+transition: 0.5s;
+display: block;
+}
+.portfolio-card:hover img { filter: grayscale(0%); }
+.portfolio-card-info { padding: 1.5rem; }
+.portfolio-card-info h3 { font-family: 'Space Grotesk'; font-size: 1.1rem; margin-bottom: 0.5rem; }
+.portfolio-card-info p { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem; line-height: 1.6; }
+.portfolio-card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.portfolio-card-tags span {
+padding: 3px 10px;
+border: 1px solid var(--border);
+border-radius: 15px;
+font-size: 0.75rem;
+color: var(--accent);
+}
+.portfolio-link {
+color: var(--accent);
+font-size: 0.85rem;
+font-weight: 600;
+display: inline-flex;
+align-items: center;
+gap: 5px;
+margin-top: 1rem;
+text-decoration: none;
+transition: 0.3s;
+}
+.portfolio-link:hover { gap: 10px; }
+.portfolio-category {
+display: inline-block;
+padding: 3px 10px;
+background: rgba(139, 92, 246, 0.15);
+color: #8b5cf6;
+border-radius: 20px;
+font-size: 0.7rem;
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 1px;
+margin-bottom: 8px;
+}
 
-        /* CONTACT */
-        .contact-box { background: #05050a; border: 1px solid var(--border); border-radius: 32px; padding: 3rem; max-width: 900px; margin: 0 auto; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 0; }
-        .input-field { width: 100%; background: #0f1219; border: 1px solid var(--border); padding: 14px 16px; border-radius: 12px; color: white; margin-bottom: 1.5rem; transition: 0.3s; font-family: 'Inter', sans-serif; font-size: 0.95rem; }
-        .input-field:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 15px rgba(139, 92, 246, 0.15); }
-        .input-field::placeholder { color: #475569; }
-        select.input-field { appearance: none; -webkit-appearance: none; cursor: pointer; }
-        .form-status { text-align: center; margin-top: 1rem; font-size: 0.9rem; padding: 12px; border-radius: 10px; display: none; }
-        .form-status.success { display: block; background: rgba(34,197,94,0.1); color: var(--success); border: 1px solid rgba(34,197,94,0.2); }
-        .form-status.error { display: block; background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
+/* CONTACT */
+.contact-box {
+background: #05050a;
+border: 1px solid var(--border);
+border-radius: 32px;
+padding: 3rem;
+max-width: 900px;
+margin: 0 auto;
+box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 0; }
+.input-field {
+width: 100%;
+background: #0f1219;
+border: 1px solid var(--border);
+padding: 14px 16px;
+border-radius: 12px;
+color: white;
+margin-bottom: 1.5rem;
+transition: 0.3s;
+font-family: 'Inter', sans-serif;
+font-size: 0.95rem;
+-webkit-appearance: none;
+}
+.input-field:focus {
+outline: none;
+border-color: var(--primary);
+box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
+}
+.input-field::placeholder { color: #475569; }
+select.input-field { appearance: none; -webkit-appearance: none; cursor: pointer; }
+.form-status {
+text-align: center;
+margin-top: 1rem;
+font-size: 0.9rem;
+padding: 12px;
+border-radius: 10px;
+display: none;
+}
+.form-status.success {
+display: block;
+background: rgba(34,197,94,0.1);
+color: var(--success);
+border: 1px solid rgba(34,197,94,0.2);
+}
+.form-status.error {
+display: block;
+background: rgba(239,68,68,0.1);
+color: var(--danger);
+border: 1px solid rgba(239,68,68,0.2);
+}
 
-        /* FOOTER */
-        footer { background: #010102; border-top: 1px solid var(--border); padding: 5rem 0 2rem; margin-top: 5rem; }
-        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
-        .footer-brand p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-top: 1rem; max-width: 300px; }
-        .footer-col h4 { color: white; margin-bottom: 1.5rem; font-family: 'Space Grotesk'; font-size: 1rem; }
-        .footer-col ul { list-style: none; }
-        .footer-col li { margin-bottom: 0.7rem; }
-        .footer-col a { color: #64748b; text-decoration: none; transition: 0.3s; font-size: 0.9rem; }
-        .footer-col a:hover { color: var(--primary); padding-left: 5px; }
-        .social-icons { display: flex; gap: 0.8rem; margin-top: 1.5rem; }
-        .s-icon { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: 0.3s; text-decoration: none; }
-        .s-icon:hover { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-3px); }
-        .footer-bottom { border-top: 1px solid var(--border); padding-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; font-size: 0.85rem; color: #475569; }
+/* FOOTER */
+footer {
+background: #010102;
+border-top: 1px solid var(--border);
+padding: 5rem 0 2rem;
+margin-top: 5rem;
+}
+.footer-grid {
+display: grid;
+grid-template-columns: 2fr 1fr 1fr 1fr;
+gap: 3rem;
+margin-bottom: 3rem;
+}
+.footer-brand p {
+color: var(--text-muted);
+font-size: 0.9rem;
+line-height: 1.6;
+margin-top: 1rem;
+max-width: 300px;
+}
+.footer-col h4 {
+color: white;
+margin-bottom: 1.5rem;
+font-family: 'Space Grotesk';
+font-size: 1rem;
+}
+.footer-col ul { list-style: none; }
+.footer-col li { margin-bottom: 0.7rem; }
+.footer-col a {
+color: #64748b;
+text-decoration: none;
+transition: 0.3s;
+font-size: 0.9rem;
+}
+.footer-col a:hover { color: var(--primary); padding-left: 5px; }
+.social-icons { display: flex; gap: 0.8rem; margin-top: 1.5rem; }
+.s-icon {
+width: 40px; height: 40px;
+border-radius: 50%;
+border: 1px solid var(--border);
+display: flex;
+align-items: center;
+justify-content: center;
+color: var(--text-muted);
+transition: 0.3s;
+text-decoration: none;
+}
+.s-icon:hover {
+background: var(--primary);
+color: white;
+border-color: var(--primary);
+transform: translateY(-3px);
+}
+.footer-bottom {
+border-top: 1px solid var(--border);
+padding-top: 2rem;
+display: flex;
+justify-content: space-between;
+align-items: center;
+flex-wrap: wrap;
+gap: 1rem;
+font-size: 0.85rem;
+color: #475569;
+}
 
-        /* CHATBOT */
-       .chat-toggle { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--grad-glow); border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; z-index: 5000; box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5), 0 0 40px rgba(6, 182, 212, 0.2); transition: 0.3s; border: 2px solid rgba(255,255,255,0.1); animation: botPulse 3s infinite; }
-.chat-toggle:hover { transform: scale(1.1) rotate(5deg); box-shadow: 0 12px 35px rgba(139, 92, 246, 0.6), 0 0 50px rgba(6, 182, 212, 0.3); }
-@keyframes botPulse { 0%, 100% { box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5), 0 0 40px rgba(6, 182, 212, 0.2); } 50% { box-shadow: 0 8px 30px rgba(139, 92, 246, 0.7), 0 0 50px rgba(6, 182, 212, 0.35); } }
-.chat-badge { position: absolute; top: -2px; right: -2px; width: 20px; height: 20px; background: var(--danger); border-radius: 50%; font-size: 0.7rem; display: flex; align-items: center; justify-content: center; animation: pulse 2s infinite; border: 2px solid var(--bg-deep); }
-        .chat-window { position: fixed; bottom: 95px; right: 25px; width: 360px; height: 500px; background: rgba(10, 10, 25, 0.95); border: 1px solid var(--border); border-radius: 20px; display: none; flex-direction: column; overflow: hidden; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 5000; box-shadow: 0 20px 60px rgba(0,0,0,0.6); }
-        .chat-window.active { display: flex; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .chat-header { padding: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.03); }
-        .chat-header-img { width: 35px; height: 35px; border-radius: 50%; background: white; padding: 3px; object-fit: contain; }
-        .chat-header-close { margin-left: auto; background: none; border: none; color: var(--text-muted); font-size: 1.3rem; cursor: pointer; transition: 0.3s; padding: 5px; }
-        .chat-header-close:hover { color: white; }
-        .chat-messages { flex: 1; padding: 1rem; overflow-y: auto; scrollbar-width: thin; }
-        .chat-messages::-webkit-scrollbar { width: 4px; }
-        .chat-messages::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        .chat-msg { display: flex; gap: 10px; margin-bottom: 15px; }
-        .chat-msg-bot { justify-content: flex-start; }
-        .chat-msg-user { justify-content: flex-end; }
-        .chat-msg-avatar { width: 28px; height: 28px; border-radius: 50%; background: white; padding: 2px; align-self: flex-start; object-fit: contain; flex-shrink: 0; }
-        .chat-bubble { padding: 12px 16px; border-radius: 16px; font-size: 0.9rem; max-width: 80%; line-height: 1.6; }
-        .chat-bubble-bot { background: rgba(255,255,255,0.08); border-top-left-radius: 4px; }
-        .chat-bubble-user { background: var(--primary); border-bottom-right-radius: 4px; }
-        .chat-quick-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; padding-left: 38px; }
-        .chat-quick-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: none; color: var(--accent); font-size: 0.8rem; cursor: pointer; transition: 0.3s; font-family: 'Inter', sans-serif; }
-        .chat-quick-btn:hover { border-color: var(--accent); background: rgba(6,182,212,0.1); }
-        .chat-input-area { padding: 1rem; border-top: 1px solid var(--border); display: flex; gap: 10px; }
-        .chat-input { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid var(--border); padding: 10px 15px; border-radius: 10px; color: white; font-family: 'Inter', sans-serif; font-size: 0.9rem; transition: 0.3s; }
-        .chat-input:focus { outline: none; border-color: var(--primary); }
-        .chat-send { background: var(--primary); border: none; color: white; width: 42px; min-width: 42px; height: 42px; border-radius: 10px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
-        .chat-send:hover { background: var(--accent); }
-        .typing-dots { animation: typingPulse 1.5s infinite; }
-        @keyframes typingPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+/* CHATBOT */
+.chat-toggle {
+position: fixed;
+bottom: 25px; right: 25px;
+width: 60px; height: 60px;
+background: var(--grad-glow);
+border-radius: 50%;
+color: white;
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 1.5rem;
+cursor: pointer;
+z-index: 5000;
+box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5), 0 0 40px rgba(6, 182, 212, 0.2);
+transition: 0.3s;
+border: 2px solid rgba(255,255,255,0.1);
+animation: botPulse 3s infinite;
+-webkit-tap-highlight-color: transparent;
+}
+.chat-toggle:hover {
+transform: scale(1.1) rotate(5deg);
+box-shadow: 0 12px 35px rgba(139, 92, 246, 0.6), 0 0 50px rgba(6, 182, 212, 0.3);
+}
+@keyframes botPulse {
+0%, 100% { box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5), 0 0 40px rgba(6, 182, 212, 0.2); }
+50% { box-shadow: 0 8px 30px rgba(139, 92, 246, 0.7), 0 0 50px rgba(6, 182, 212, 0.35); }
+}
+.chat-badge {
+position: absolute;
+top: -2px; right: -2px;
+width: 20px; height: 20px;
+background: var(--danger);
+border-radius: 50%;
+font-size: 0.7rem;
+display: flex;
+align-items: center;
+justify-content: center;
+animation: pulse 2s infinite;
+border: 2px solid var(--bg-deep);
+}
+.chat-window {
+position: fixed;
+bottom: 95px; right: 25px;
+width: 360px; height: 500px;
+background: rgba(10, 10, 25, 0.95);
+border: 1px solid var(--border);
+border-radius: 20px;
+display: none;
+flex-direction: column;
+overflow: hidden;
+backdrop-filter: blur(20px);
+-webkit-backdrop-filter: blur(20px);
+z-index: 5000;
+box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.chat-window.active { display: flex; animation: slideUp 0.3s ease; }
+@keyframes slideUp {
+from { transform: translateY(20px); opacity: 0; }
+to { transform: translateY(0); opacity: 1; }
+}
+.chat-header {
+padding: 1rem;
+border-bottom: 1px solid var(--border);
+display: flex;
+align-items: center;
+gap: 10px;
+background: rgba(255,255,255,0.03);
+}
+.chat-header-img {
+width: 35px; height: 35px;
+border-radius: 50%;
+background: white;
+padding: 3px;
+object-fit: contain;
+}
+.chat-header-close {
+margin-left: auto;
+background: none;
+border: none;
+color: var(--text-muted);
+font-size: 1.3rem;
+cursor: pointer;
+transition: 0.3s;
+padding: 5px;
+}
+.chat-header-close:hover { color: white; }
+.chat-messages {
+flex: 1;
+padding: 1rem;
+overflow-y: auto;
+scrollbar-width: thin;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+.chat-msg { display: flex; gap: 10px; margin-bottom: 15px; }
+.chat-msg-bot { justify-content: flex-start; }
+.chat-msg-user { justify-content: flex-end; }
+.chat-msg-avatar {
+width: 28px; height: 28px;
+border-radius: 50%;
+background: white;
+padding: 2px;
+align-self: flex-start;
+object-fit: contain;
+flex-shrink: 0;
+}
+.chat-bubble {
+padding: 12px 16px;
+border-radius: 16px;
+font-size: 0.9rem;
+max-width: 80%;
+line-height: 1.6;
+word-wrap: break-word;
+overflow-wrap: break-word;
+}
+.chat-bubble-bot { background: rgba(255,255,255,0.08); border-top-left-radius: 4px; }
+.chat-bubble-user { background: var(--primary); border-bottom-right-radius: 4px; }
+.chat-quick-btns {
+display: flex;
+gap: 8px;
+flex-wrap: wrap;
+margin-bottom: 15px;
+padding-left: 38px;
+}
+.chat-quick-btn {
+padding: 6px 14px;
+border-radius: 20px;
+border: 1px solid var(--border);
+background: none;
+color: var(--accent);
+font-size: 0.8rem;
+cursor: pointer;
+transition: 0.3s;
+font-family: 'Inter', sans-serif;
+-webkit-tap-highlight-color: transparent;
+}
+.chat-quick-btn:hover { border-color: var(--accent); background: rgba(6,182,212,0.1); }
+.chat-input-area {
+padding: 1rem;
+border-top: 1px solid var(--border);
+display: flex;
+gap: 10px;
+}
+.chat-input {
+flex: 1;
+background: rgba(0,0,0,0.3);
+border: 1px solid var(--border);
+padding: 10px 15px;
+border-radius: 10px;
+color: white;
+font-family: 'Inter', sans-serif;
+font-size: 0.9rem;
+transition: 0.3s;
+-webkit-appearance: none;
+}
+.chat-input:focus { outline: none; border-color: var(--primary); }
+.chat-send {
+background: var(--primary);
+border: none;
+color: white;
+width: 42px; min-width: 42px; height: 42px;
+border-radius: 10px;
+cursor: pointer;
+transition: 0.3s;
+display: flex;
+align-items: center;
+justify-content: center;
+-webkit-tap-highlight-color: transparent;
+}
+.chat-send:hover { background: var(--accent); }
+.typing-dots { animation: typingPulse 1.5s infinite; }
+@keyframes typingPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
-        /* MODAL */
-        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 6000; display: none; place-items: center; }
-        .modal.active { display: grid; }
-        .modal-content { background: #0f172a; width: 90%; max-width: 800px; padding: 2.5rem; border-radius: 24px; border: 1px solid var(--border); position: relative; animation: slideUp 0.3s ease; max-height: 90vh; overflow-y: auto; }
-        .modal-close { position: absolute; top: 15px; right: 20px; font-size: 2rem; color: #fff; cursor: pointer; background: none; border: none; transition: 0.3s; }
-        .modal-close:hover { color: var(--primary); }
+/* MODAL */
+.modal {
+position: fixed;
+inset: 0;
+background: rgba(0,0,0,0.9);
+z-index: 6000;
+display: none;
+place-items: center;
+}
+.modal.active { display: grid; }
+.modal-content {
+background: #0f172a;
+width: 90%;
+max-width: 800px;
+padding: 2.5rem;
+border-radius: 24px;
+border: 1px solid var(--border);
+position: relative;
+animation: slideUp 0.3s ease;
+max-height: 90vh;
+overflow-y: auto;
+}
+.modal-close {
+position: absolute;
+top: 15px; right: 20px;
+font-size: 2rem;
+color: #fff;
+cursor: pointer;
+background: none;
+border: none;
+transition: 0.3s;
+}
+.modal-close:hover { color: var(--primary); }
 
-        /* REVEAL */
-        .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
-        .reveal.active { opacity: 1; transform: translateY(0); }
+/* REVEAL */
+.reveal {
+opacity: 0;
+transform: translateY(40px);
+transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.reveal.active { opacity: 1; transform: translateY(0); }
 
-        /* BACK TO TOP */
-        .back-to-top { position: fixed; bottom: 25px; left: 25px; width: 45px; height: 45px; background: rgba(255,255,255,0.1); border: 1px solid var(--border); border-radius: 50%; color: white; display: none; align-items: center; justify-content: center; cursor: pointer; z-index: 5000; transition: 0.3s; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-        .back-to-top.visible { display: flex; }
-        .back-to-top:hover { background: var(--primary); border-color: var(--primary); }
+/* BACK TO TOP */
+.back-to-top {
+position: fixed;
+bottom: 25px; left: 25px;
+width: 45px; height: 45px;
+background: rgba(255,255,255,0.1);
+border: 1px solid var(--border);
+border-radius: 50%;
+color: white;
+display: none;
+align-items: center;
+justify-content: center;
+cursor: pointer;
+z-index: 5000;
+transition: 0.3s;
+backdrop-filter: blur(10px);
+-webkit-backdrop-filter: blur(10px);
+-webkit-tap-highlight-color: transparent;
+}
+.back-to-top.visible { display: flex; }
+.back-to-top:hover { background: var(--primary); border-color: var(--primary); }
 
 /* ==========================================
-   RESPONSIVE - FULL REWRITE
+   RESPONSIVE - COMPLETE REWRITE
    ========================================== */
 
-/* TABLET */
+/* LARGE TABLET (1024px and below) */
 @media (max-width: 1024px) {
-    .featured-project { grid-template-columns: 1fr; padding: 2rem; }
-    .footer-grid { grid-template-columns: 1fr 1fr; }
-    .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .featured-project {
+    grid-template-columns: 1fr;
+    padding: 2rem;
+  }
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .nav-link {
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
 }
 
-/* MOBILE */
+/* TABLET (900px and below) */
+@media (max-width: 900px) {
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* MOBILE BREAKPOINT (768px and below) */
 @media screen and (max-width: 768px) {
-    /* ==== NAVBAR MOBILE ==== */
-    .nav-center {
-        display: none !important;
-        visibility: hidden !important;
-        width: 0 !important;
-        height: 0 !important;
-        overflow: hidden !important;
-        position: absolute !important;
-        pointer-events: none !important;
-    }
-    .nav-cta {
-        display: none !important;
-        visibility: hidden !important;
-        width: 0 !important;
-        height: 0 !important;
-        overflow: hidden !important;
-        position: absolute !important;
-    }
-    .mobile-menu-btn {
-        display: block !important;
-        visibility: visible !important;
-    }
-    .navbar {
-        width: 94% !important;
-        padding: 0 15px !important;
-        height: 56px !important;
-        top: 10px !important;
-        border-radius: 50px !important;
-    }
-    .logo img {
-        height: 24px !important;
-    }
 
-    /* ==== GENERAL ==== */
-    html { font-size: 15px; }
-    .section { padding: 4rem 0; }
-    .container { padding: 0 1rem; }
-    .section-title { font-size: 1.6rem; margin-bottom: 2.5rem; }
+  /* NAVBAR MOBILE */
+  .nav-center {
+    display: none !important;
+  }
+  .nav-cta {
+    display: none !important;
+  }
+  .mobile-menu-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+  .navbar {
+    width: 94%;
+    padding: 0 15px;
+    height: 56px;
+    top: 10px;
+    border-radius: 50px;
+  }
+  .navbar.scrolled {
+    height: 52px;
+    top: 8px;
+  }
+  .logo img {
+    height: 24px;
+  }
+  .logo img.logo-word {
+    height: 45px;
+  }
 
-    /* ==== HERO ==== */
-    .hero { min-height: 100vh; height: auto; padding: 0 1rem; }
-    .hero-content { margin-top: 70px; padding: 15px; }
-    .hero h1 { font-size: 2rem; line-height: 1.15; }
-    .hero p { font-size: 0.95rem; margin-bottom: 2rem; }
-    .hero-badge { font-size: 0.75rem; padding: 6px 14px; }
-    .hero-buttons { flex-direction: column; align-items: center; gap: 12px; }
-    .hero-buttons .btn-header,
-    .hero-buttons .btn-outline { width: 100%; max-width: 280px; justify-content: center; text-align: center; }
+  /* GENERAL */
+  html { font-size: 15px; }
+  .section { padding: 4rem 0; }
+  .container { padding: 0 1.2rem; }
+  .section-title { font-size: 1.6rem; margin-bottom: 2.5rem; }
+  .section-label { font-size: 0.8rem; letter-spacing: 2px; }
 
-    /* ==== STATS ==== */
-    .stats-grid { grid-template-columns: repeat(2, 1fr); margin-top: 2rem; padding: 1.2rem; gap: 0.8rem; border-radius: 16px; }
-    .stat-num { font-size: 1.6rem; }
-    .stat-label { font-size: 0.75rem; }
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    height: auto;
+    padding: 0 1rem;
+  }
+  .hero-content {
+    margin-top: 70px;
+    padding: 15px;
+  }
+  .hero h1 {
+    font-size: clamp(1.8rem, 7vw, 2.5rem);
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+  }
+  .hero p {
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    padding: 0 0.5rem;
+  }
+  .hero-badge {
+    font-size: 0.75rem;
+    padding: 6px 14px;
+    margin-bottom: 1.5rem;
+  }
+  .hero-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .hero-buttons .btn-header,
+  .hero-buttons .btn-outline {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+    text-align: center;
+    padding: 12px 30px;
+    font-size: 0.95rem;
+  }
 
-    /* ==== ABOUT ==== */
-    .about-grid { grid-template-columns: 1fr; gap: 2rem; }
-    .about-features-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .about-feature { padding: 1.2rem; }
+  /* STATS */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    margin-top: 2rem;
+    padding: 1.2rem;
+    gap: 0.8rem;
+    border-radius: 16px;
+  }
+  .stat-num { font-size: 1.6rem; }
+  .stat-label { font-size: 0.75rem; }
 
-    /* ==== SERVICES ==== */
-    .services-grid { grid-template-columns: 1fr; gap: 1.5rem; }
-    .service-card { height: auto; min-height: auto; }
-    .service-img { height: 200px; }
+  /* ABOUT */
+  .about-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .about-img-box img {
+    max-height: 350px;
+  }
+  .about-features-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .about-feature {
+    padding: 1.2rem;
+  }
 
-    /* ==== FEATURED ==== */
-    .featured-project { grid-template-columns: 1fr; padding: 1.5rem; border-radius: 20px; gap: 2rem; }
-    .project-mockup img { border-radius: 14px; }
+  /* SERVICES */
+  .services-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .service-card {
+    height: auto;
+    min-height: auto;
+  }
+  .service-img { height: 200px; }
+  .service-info {
+    padding: 1.2rem;
+  }
 
-    /* ==== TESTIMONIALS ==== */
-    .testimonials-wrapper { gap: 1rem; padding: 1rem 0; }
-    .testimonial-card { min-width: 280px; max-width: 320px; padding: 1.5rem; }
+  /* FEATURED */
+  .featured-project {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+    border-radius: 20px;
+    gap: 2rem;
+  }
+  .project-mockup img {
+    border-radius: 14px;
+  }
 
-    /* ==== PORTFOLIO ==== */
-    .portfolio-showcase { grid-template-columns: 1fr; gap: 1.5rem; }
+  /* TESTIMONIALS */
+  .testimonials-wrapper {
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+  .testimonial-card {
+    min-width: 280px;
+    max-width: 320px;
+    padding: 1.5rem;
+    min-height: 250px;
+  }
 
-    /* ==== CONTACT ==== */
-    .contact-box { padding: 1.5rem; border-radius: 20px; }
-    .form-grid { grid-template-columns: 1fr; gap: 0; }
-    .input-field { padding: 12px 14px; font-size: 0.9rem; margin-bottom: 1rem; }
+  /* PORTFOLIO */
+  .portfolio-showcase {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
 
-    /* ==== FOOTER ==== */
-    .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
-    .footer-bottom { flex-direction: column; text-align: center; }
+  /* CONTACT */
+  .contact-box {
+    padding: 1.5rem;
+    border-radius: 20px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .input-field {
+    padding: 12px 14px;
+    font-size: 16px; /* Prevents iOS zoom */
+    margin-bottom: 1rem;
+  }
 
-    /* ==== CHAT ==== */
-    .chat-window { width: calc(100% - 20px); right: 10px; left: 10px; bottom: 85px; height: 70vh; max-height: 500px; border-radius: 16px; }
-    .chat-toggle { bottom: 18px; right: 18px; width: 52px; height: 52px; font-size: 1.2rem; }
-    .back-to-top { bottom: 18px; left: 18px; width: 38px; height: 38px; }
+  /* FOOTER */
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+  .footer-brand p {
+    max-width: 100%;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    text-align: center;
+  }
 
-    /* ==== MODAL ==== */
-    .modal-content { width: 95%; padding: 1.5rem; border-radius: 16px; max-height: 85vh; }
+  /* CHAT */
+  .chat-window {
+    width: calc(100% - 20px);
+    right: 10px;
+    left: 10px;
+    bottom: 85px;
+    height: 70vh;
+    max-height: 500px;
+    border-radius: 16px;
+  }
+  .chat-toggle {
+    bottom: 18px;
+    right: 18px;
+    width: 52px;
+    height: 52px;
+    font-size: 1.2rem;
+  }
+  .chat-bubble {
+    max-width: 85%;
+    font-size: 0.85rem;
+  }
+  .chat-quick-btns {
+    padding-left: 0;
+  }
+  .back-to-top {
+    bottom: 18px;
+    left: 18px;
+    width: 38px;
+    height: 38px;
+  }
+
+  /* MODAL */
+  .modal-content {
+    width: 95%;
+    padding: 1.5rem;
+    border-radius: 16px;
+    max-height: 85vh;
+  }
+  .modal-close {
+    top: 10px;
+    right: 15px;
+    font-size: 1.8rem;
+  }
 }
 
-/* SMALL MOBILE */
+/* SMALL MOBILE (480px and below) */
 @media screen and (max-width: 480px) {
-    html { font-size: 14px; }
-    .hero h1 { font-size: 1.8rem; }
-    .hero p { font-size: 0.9rem; }
-    .hero-content { margin-top: 60px; }
-    .stats-grid { grid-template-columns: 1fr 1fr; padding: 1rem; }
-    .stat-num { font-size: 1.4rem; }
-    .about-features-grid { grid-template-columns: 1fr; }
-    .testimonial-card { min-width: 260px; }
-    .service-img { height: 180px; }
-    .navbar { width: 96% !important; height: 52px !important; }
-    .logo img { height: 20px !important; }
+  html { font-size: 14px; }
+  .container { padding: 0 1rem; }
+
+  .hero h1 { font-size: clamp(1.6rem, 6.5vw, 2rem); }
+  .hero p { font-size: 0.9rem; }
+  .hero-content { margin-top: 60px; }
+  .hero-badge { font-size: 0.7rem; padding: 5px 12px; }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    padding: 1rem;
+    gap: 0.6rem;
+  }
+  .stat-num { font-size: 1.4rem; }
+  .stat-label { font-size: 0.7rem; }
+  .stat-item { padding: 0.8rem 0.5rem; }
+
+  .about-features-grid { grid-template-columns: 1fr; }
+  .about-feature { padding: 1rem; }
+
+  .service-img { height: 180px; }
+  .service-info h3 { font-size: 1rem; }
+  .service-info p { font-size: 0.85rem; }
+
+  .testimonial-card {
+    min-width: 260px;
+    max-width: 300px;
+    padding: 1.2rem;
+  }
+  .testimonial-text { font-size: 0.85rem; }
+
+  .featured-project { padding: 1.2rem; gap: 1.5rem; }
+
+  .contact-box { padding: 1.2rem; }
+
+  .navbar {
+    width: 96%;
+    height: 52px;
+    padding: 0 12px;
+  }
+  .logo img { height: 20px; }
+  .logo img.logo-word { height: 40px; }
+
+  .section-title { font-size: 1.4rem; margin-bottom: 2rem; }
+
+  .mobile-nav-link { font-size: 1.5rem; }
+
+  .tech-tag { font-size: 0.7rem; padding: 4px 10px; }
+
+  .portfolio-card img { height: 180px; }
+  .portfolio-card-info { padding: 1.2rem; }
+  .portfolio-card-info h3 { font-size: 1rem; }
+
+  .footer-col h4 { font-size: 0.95rem; margin-bottom: 1rem; }
+  .footer-col a { font-size: 0.85rem; }
+  .footer-brand p { font-size: 0.85rem; }
 }
 
-/* VERY SMALL */
+/* VERY SMALL (360px and below) */
 @media screen and (max-width: 360px) {
-    .hero h1 { font-size: 1.6rem; }
-    .container { padding: 0 0.8rem; }
-    .stats-grid { padding: 0.8rem; }
-    .stat-num { font-size: 1.2rem; }
-    .logo img { height: 18px !important; }
+  html { font-size: 13px; }
+  .container { padding: 0 0.8rem; }
+
+  .hero h1 { font-size: 1.5rem; }
+  .hero p { font-size: 0.85rem; }
+
+  .stats-grid { padding: 0.8rem; gap: 0.5rem; }
+  .stat-num { font-size: 1.2rem; }
+
+  .logo img { height: 18px; }
+  .logo img.logo-word { height: 35px; }
+
+  .navbar { width: 97%; height: 48px; padding: 0 10px; }
+
+  .mobile-menu-btn { font-size: 1.3rem; padding: 8px 10px; }
+
+  .section { padding: 3rem 0; }
+  .section-title { font-size: 1.3rem; }
+
+  .hero-buttons .btn-header,
+  .hero-buttons .btn-outline {
+    max-width: 250px;
+    padding: 10px 25px;
+    font-size: 0.85rem;
+  }
+
+  .chat-window {
+    height: 65vh;
+    max-height: 450px;
+  }
+  .chat-toggle {
+    width: 48px;
+    height: 48px;
+    font-size: 1.1rem;
+    bottom: 15px;
+    right: 15px;
+  }
+  .back-to-top {
+    width: 35px;
+    height: 35px;
+    bottom: 15px;
+    left: 15px;
+  }
 }
 
-    </style>
+/* LANDSCAPE MOBILE */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .hero {
+    min-height: 100vh;
+    padding-top: 80px;
+    padding-bottom: 40px;
+  }
+  .hero h1 { font-size: 1.5rem; }
+  .hero p { font-size: 0.85rem; margin-bottom: 1rem; }
+  .hero-badge { margin-bottom: 1rem; }
+  .hero-buttons { margin-top: 1rem; }
+
+  .mobile-nav-overlay {
+    padding: 1rem;
+    gap: 0.8rem;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+  }
+  .mobile-nav-link {
+    font-size: 1.2rem;
+    padding: 8px 15px;
+  }
+  .mobile-close {
+    top: 15px;
+    right: 15px;
+    font-size: 2rem;
+  }
+}
+
+/* SAFE AREA (iPhone notch etc) */
+@supports (padding: max(0px)) {
+  .navbar {
+    padding-left: max(30px, env(safe-area-inset-left));
+    padding-right: max(10px, env(safe-area-inset-right));
+  }
+  .chat-toggle {
+    bottom: max(25px, calc(env(safe-area-inset-bottom) + 10px));
+    right: max(25px, calc(env(safe-area-inset-right) + 10px));
+  }
+  .back-to-top {
+    bottom: max(25px, calc(env(safe-area-inset-bottom) + 10px));
+    left: max(25px, calc(env(safe-area-inset-left) + 10px));
+  }
+  .chat-window {
+    bottom: max(95px, calc(env(safe-area-inset-bottom) + 80px));
+  }
+  footer {
+    padding-bottom: max(2rem, calc(env(safe-area-inset-bottom) + 1rem));
+  }
+}
+
+/* Touch device optimization */
+@media (hover: none) and (pointer: coarse) {
+  .service-card:hover { transform: none; }
+  .service-card:active { transform: scale(0.98); }
+  .testimonial-card:hover { transform: none; }
+  .stat-item:hover { transform: none; }
+  .portfolio-card:hover { transform: none; }
+  .about-feature:hover { transform: none; }
+  .btn-header:hover { transform: none; }
+  .btn-header:active { transform: scale(0.97); }
+  .s-icon:hover { transform: none; }
+}
+</style>
 </head>
 <body>
 
-    
-    
-
-    <button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
-        <i class="fa-solid fa-arrow-up"></i>
-    </button>
-
-    <nav class="navbar" id="navbar">
-    <a href="#home" class="logo">
-        <img src="centronix_logo_only.png" alt="Centronix">
-        <img src="centronix_word.png" alt="Centronix" class="logo-word">
-    </a>
-    <div class="nav-center" id="navCenter">
-        <a href="#home" class="nav-link active">Home</a>
-        <a href="#about" class="nav-link">About</a>
-        <a href="#services" class="nav-link">Expertise</a>
-        <a href="#work" class="nav-link">Work</a>
-        <a href="#testimonials" class="nav-link">Reviews</a>
-        <a href="#contact" class="nav-link">Contact</a>
-    </div>
-    <div class="nav-right">
-        <a href="#contact" class="btn-header nav-cta">Start Project</a>
-        <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMenu()" aria-label="Menu">
-            <i class="fa-solid fa-bars"></i>
-        </button>
-    </div>
-</nav>
-
-    <div class="mobile-nav-overlay" id="mobileNav">
-        <button class="mobile-close" onclick="toggleMenu()" aria-label="Close">&times;</button>
-        <a href="#home" class="mobile-nav-link" onclick="toggleMenu()">Home</a>
-        <a href="#about" class="mobile-nav-link" onclick="toggleMenu()">About</a>
-        <a href="#services" class="mobile-nav-link" onclick="toggleMenu()">Services</a>
-        <a href="#work" class="mobile-nav-link" onclick="toggleMenu()">Work</a>
-        <a href="#testimonials" class="mobile-nav-link" onclick="toggleMenu()">Reviews</a>
-        <a href="#contact" class="mobile-nav-link" onclick="toggleMenu()">Contact</a>
-    </div>
-
-    <section id="home" class="hero">
-        <video autoplay muted loop playsinline class="hero-video">
-            <source src="centronix1.mp4" type="video/mp4">
-        </video>
-        <div class="hero-overlay"></div>
-        <div class="hero-content" id="heroContent">
-            <div class="hero-badge"><div class="status-dot"></div> Accepting New Clients</div>
-            <h1>Architecting <br><span class="gradient-text">Digital Dominance</span></h1>
-            <p>We analyze your business, understand your market, and build systems that generate revenue.</p>
-            <div class="hero-buttons">
-                <a href="#services" class="btn-header" style="padding:14px 40px;font-size:1rem;">View Solutions</a>
-                <a href="#work" class="btn-outline"><i class="fa-solid fa-play" style="font-size:0.8rem;"></i> See Our Work</a>
-            </div>
-        </div>
-    </section>
-
-    <div class="container">
-        <div class="stats-grid" data-aos="fade-up" id="statsGrid">
-            <div class="stat-item"><div class="stat-num" id="statProjectsNum" data-target="100" data-suffix="+">0</div><div class="stat-label">Projects Deployed</div></div>
-            <div class="stat-item"><div class="stat-num" id="statRetentionNum" data-target="98" data-suffix="%">0</div><div class="stat-label">Client Retention</div></div>
-            <div class="stat-item"><div class="stat-num" id="statInteractionsNum" data-target="50" data-suffix="M+">0</div><div class="stat-label">User Interactions</div></div>
-            <div class="stat-item"><div class="stat-num" id="statUptimeNum" data-target="24" data-suffix="/7">0</div><div class="stat-label">System Uptime</div></div>
-        </div>
-    </div>
-
-    <section id="about" class="section reveal">
-        <div class="container">
-            <div class="about-grid">
-                <div class="about-img-box" data-aos="fade-right">
-                    <img src="cen1.png" alt="Centronix Dashboard" loading="lazy">
-                </div>
-                <div data-aos="fade-left">
-                    <h2 style="font-family:'Space Grotesk';font-size:clamp(1.8rem,4vw,2.5rem);margin-bottom:1.5rem;">Why <span class="gradient-text">Centronix?</span></h2>
-                    <p style="color:var(--text-muted);margin-bottom:2rem;">In a world of templates, we build custom architectures. We ensure your platform is scalable, secure, and optimized for sales.</p>
-                    <div class="about-features-grid">
-                        <div class="about-feature"><i class="fa-solid fa-rocket" style="color:var(--primary);font-size:1.5rem;margin-bottom:0.8rem;display:block;"></i><h4 style="color:white;margin-bottom:0.5rem;">Scalable</h4><p style="font-size:0.85rem;color:#64748b;">Built for growth from day one.</p></div>
-                        <div class="about-feature"><i class="fa-solid fa-shield-halved" style="color:var(--accent);font-size:1.5rem;margin-bottom:0.8rem;display:block;"></i><h4 style="color:white;margin-bottom:0.5rem;">Secure</h4><p style="font-size:0.85rem;color:#64748b;">Enterprise-grade protection.</p></div>
-                        <div class="about-feature"><i class="fa-solid fa-bolt" style="color:#fbbf24;font-size:1.5rem;margin-bottom:0.8rem;display:block;"></i><h4 style="color:white;margin-bottom:0.5rem;">Fast</h4><p style="font-size:0.85rem;color:#64748b;">Optimized for speed.</p></div>
-                        <div class="about-feature"><i class="fa-solid fa-chart-line" style="color:var(--success);font-size:1.5rem;margin-bottom:0.8rem;display:block;"></i><h4 style="color:white;margin-bottom:0.5rem;">Results</h4><p style="font-size:0.85rem;color:#64748b;">Data-driven decisions.</p></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section id="services" class="section reveal">
-        <div class="container">
-            <span class="section-label" data-aos="fade-up">What We Do</span>
-            <h2 class="section-title" data-aos="fade-up">Our <span class="gradient-text">Expertise</span></h2>
-            <div class="services-grid" id="servicesGrid">
-                <div class="service-card" onclick="openModal('web')" data-aos="fade-up" data-aos-delay="100"><img src="web_dev.jpg" class="service-img" alt="Web Development" loading="lazy"><div class="service-info"><div><h3>Web Engineering</h3><p>Next.js & React based high-performance systems built for scale.</p></div><div class="arrow-link">View Specs <i class="fa-solid fa-arrow-right"></i></div></div></div>
-                <div class="service-card" onclick="openModal('ai')" data-aos="fade-up" data-aos-delay="200"><img src="ai_brain.jpg" class="service-img" alt="AI Integration" loading="lazy"><div class="service-info"><div><h3>AI Integration</h3><p>Machine Learning & intelligent automation for your business.</p></div><div class="arrow-link">View Specs <i class="fa-solid fa-arrow-right"></i></div></div></div>
-                <div class="service-card" onclick="openModal('mobile')" data-aos="fade-up" data-aos-delay="300"><img src="mobile_app.jpg" class="service-img" alt="Mobile Apps" loading="lazy"><div class="service-info"><div><h3>Mobile Apps</h3><p>Cross-platform iOS & Android development with Flutter.</p></div><div class="arrow-link">View Specs <i class="fa-solid fa-arrow-right"></i></div></div></div>
-                <div class="service-card" onclick="openModal('market')" data-aos="fade-up" data-aos-delay="400"><img src="marketing.jpg" class="service-img" alt="Digital Marketing" loading="lazy"><div class="service-info"><div><h3>Digital Growth</h3><p>SEO, Analytics & Data-driven marketing strategies.</p></div><div class="arrow-link">View Specs <i class="fa-solid fa-arrow-right"></i></div></div></div>
-            </div>
-        </div>
-    </section>
-
-    <section id="work" class="section reveal">
-        <div class="container">
-            <span class="section-label" data-aos="fade-up">Portfolio</span>
-            <h2 class="section-title" data-aos="fade-up">Featured <span class="gradient-text">Deployment</span></h2>
-            <div class="featured-project" data-aos="fade-up">
-                <div>
-                    <span class="tech-tag">Case Study</span>
-                    <h3 style="font-family:'Space Grotesk';font-size:clamp(1.5rem,3vw,2rem);margin:1.5rem 0 1rem;">Centronix Client App</h3>
-                    <p style="color:var(--text-muted);margin-bottom:2rem;line-height:1.8;">A fully integrated mobile application allowing clients to track project progress, view invoices, and chat with our engineering team in real-time.</p>
-                    <div style="margin-bottom:2rem;"><span class="tech-tag">Flutter</span><span class="tech-tag">Firebase</span><span class="tech-tag">Node.js</span><span class="tech-tag">REST API</span></div>
-                    <a href="#contact" class="btn-header" style="padding:12px 30px;">Start Similar Project</a>
-                </div>
-                <div class="project-mockup"><img src="cen2.png" alt="App Mockup" loading="lazy"></div>
-            </div>
-        </div>
-    </section>
-
-    <section id="testimonials" class="section reveal">
-        <div class="container">
-            <span class="section-label" data-aos="fade-up">Testimonials</span>
-            <h2 class="section-title" data-aos="fade-up">Client <span class="gradient-text">Reviews</span></h2>
-            <div class="testimonials-wrapper" id="testimonialsContainer" data-aos="fade-up">
-                <div style="text-align:center;width:100%;padding:2rem;color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem;"></i><p style="margin-top:1rem;">Loading reviews...</p></div>
-            </div>
-        </div>
-    </section>
-
-    <section id="portfolioShowcase" class="section reveal">
-        <div class="container">
-            <span class="section-label" data-aos="fade-up">Our Clients</span>
-            <h2 class="section-title" data-aos="fade-up">Brands We've <span class="gradient-text">Worked With</span></h2>
-            <div class="portfolio-showcase" id="portfolioGrid" data-aos="fade-up"></div>
-        </div>
-    </section>
-
-    <section id="contact" class="section reveal">
-        <div class="container">
-            <span class="section-label" data-aos="fade-up">Get In Touch</span>
-            <h2 class="section-title" data-aos="fade-up">Initialize <span class="gradient-text">Project</span></h2>
-            <div class="contact-box" data-aos="fade-up">
-                <form id="contactForm">
-                    <div class="form-grid">
-                        <input type="text" class="input-field" id="formName" placeholder="Your Name" required>
-                        <input type="email" class="input-field" id="formEmail" placeholder="Your Email" required>
-                    </div>
-                    <select class="input-field" id="formService">
-                        <option value="" disabled selected>Select Service</option>
-                        <option value="web">Web Engineering</option>
-                        <option value="ai">AI Integration</option>
-                        <option value="mobile">Mobile App</option>
-                        <option value="marketing">Digital Growth</option>
-                        <option value="other">Other</option>
-                    </select>
-                    <input type="text" class="input-field" id="formBudget" placeholder="Budget Range (Optional)">
-                    <textarea class="input-field" id="formMessage" rows="4" placeholder="Tell us about your project..." required></textarea>
-                    <button type="submit" class="btn-header" id="submitBtn" style="width:100%;padding:15px;font-size:1rem;"><i class="fa-solid fa-paper-plane" style="margin-right:8px;"></i> Initialize Project</button>
-                    <div class="form-status" id="formStatus"></div>
-                </form>
-            </div>
-        </div>
-    </section>
-
-    <footer>
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-brand">
-                    <a href="#home" class="logo" style="margin-bottom:1rem;"><img src="centronix_logo_only.png" alt="Centronix" style="height:35px;"><span>CENTRONIX</span></a>
-                    <p id="footerAbout">Empowering enterprises with next-generation digital architecture.</p>
-                  <div class="social-icons">
-    <a href="javascript:void(0)" class="s-icon" id="footerFb" aria-label="Facebook" style="display:none;"><i class="fa-brands fa-facebook-f"></i></a>
-    <a href="javascript:void(0)" class="s-icon" id="footerLi" aria-label="LinkedIn" style="display:none;"><i class="fa-brands fa-linkedin-in"></i></a>
-    <a href="javascript:void(0)" class="s-icon" id="footerIg" aria-label="Instagram" style="display:none;"><i class="fa-brands fa-instagram"></i></a>
-    <a href="javascript:void(0)" class="s-icon" id="footerGh" aria-label="GitHub" style="display:none;"><i class="fa-brands fa-github"></i></a>
+<div id="preloader">
+<div class="logo-3d-wrapper">
+<img src="centronix_logo_only.png" class="preloader-logo" alt="Loading">
 </div>
-                </div>
-                <div class="footer-col"><h4>Company</h4><ul><li><a href="#about">About Us</a></li><li><a href="#work">Our Work</a></li><li><a href="#testimonials">Reviews</a></li><li><a href="#contact">Careers</a></li></ul></div>
-                <div class="footer-col"><h4>Services</h4><ul><li><a href="#services">Web Engineering</a></li><li><a href="#services">Mobile Apps</a></li><li><a href="#services">AI Integration</a></li><li><a href="#services">Consulting</a></li></ul></div>
-                <div class="footer-col"><h4>Legal</h4><ul><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Service</a></li><li><a href="#">Cookie Policy</a></li><li><a href="#">Sitemap</a></li></ul></div>
-            </div>
-            <div class="footer-bottom">
-                <div>&copy; 2026 Centronix. All rights reserved.</div>
-                <div>Crafted with <span style="color:var(--danger);">♥</span> in Sri Lanka</div>
-            </div>
-        </div>
-    </footer>
+<div class="loader-status" id="loadStatus">SYSTEM BOOTING...</div>
+<div class="loader-bar-container"><div class="loader-bar"></div></div>
+</div>
 
-    <button class="chat-toggle" onclick="toggleChat()" aria-label="Chat">
-    <i class="fa-solid fa-robot"></i>
-    <div class="chat-badge" id="chatBadge">1</div>
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+<i class="fa-solid fa-arrow-up"></i>
 </button>
 
-    <div class="chat-window" id="chatWindow">
-        <div class="chat-header">
-            <img src="centronix_logo_only.png" class="chat-header-img" alt="Bot">
-            <div><h4 style="margin:0;font-family:'Space Grotesk';font-size:1rem;">Centronix AI</h4><small style="color:#4ade80;display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;background:#4ade80;border-radius:50%;display:inline-block;"></span> Online</small></div>
-            <button class="chat-header-close" onclick="toggleChat()">&times;</button>
-        </div>
-        <div class="chat-messages" id="chatBody">
-            <div class="chat-msg chat-msg-bot"><img src="centronix_logo_only.png" class="chat-msg-avatar" alt="Bot"><div class="chat-bubble chat-bubble-bot">👋 Hello! I'm Centronix AI assistant. How can I help you today?</div></div>
-            <div class="chat-quick-btns">
-                <button class="chat-quick-btn" onclick="quickChat('pricing')">💰 Pricing</button>
-                <button class="chat-quick-btn" onclick="quickChat('services')">🛠️ Services</button>
-                <button class="chat-quick-btn" onclick="quickChat('contact')">📧 Contact</button>
-            </div>
-        </div>
-        <div class="chat-input-area">
-            <input type="text" id="chatInput" class="chat-input" placeholder="Type your message...">
-            <button onclick="handleChat()" class="chat-send" aria-label="Send"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
-    </div>
+<nav class="navbar" id="navbar">
+<a href="#home" class="logo">
+<img src="centronix_logo_only.png" alt="Centronix">
+<img src="centronix_word.png" alt="Centronix" class="logo-word">
+</a>
+<div class="nav-center" id="navCenter">
+<a href="#home" class="nav-link active">Home</a>
+<a href="#about" class="nav-link">About</a>
+<a href="#services" class="nav-link">Expertise</a>
+<a href="#work" class="nav-link">Work</a>
+<a href="#testimonials" class="nav-link">Reviews</a>
+<a href="#contact" class="nav-link">Contact</a>
+</div>
+<div class="nav-right">
+<a href="#contact" class="btn-header nav-cta">Start Project</a>
+<button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleMenu()" aria-label="Menu">
+<i class="fa-solid fa-bars"></i>
+</button>
+</div>
+</nav>
 
-    <div class="modal" id="serviceModal" onclick="closeModal()">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-            <div id="modalBody"></div>
-        </div>
-    </div>
+<div class="mobile-nav-overlay" id="mobileNav">
+<button class="mobile-close" onclick="toggleMenu()" aria-label="Close">&times;</button>
+<a href="#home" class="mobile-nav-link" onclick="toggleMenu()">Home</a>
+<a href="#about" class="mobile-nav-link" onclick="toggleMenu()">About</a>
+<a href="#services" class="mobile-nav-link" onclick="toggleMenu()">Services</a>
+<a href="#work" class="mobile-nav-link" onclick="toggleMenu()">Work</a>
+<a href="#testimonials" class="mobile-nav-link" onclick="toggleMenu()">Reviews</a>
+<a href="#contact" class="mobile-nav-link" onclick="toggleMenu()">Contact</a>
+</div>
 
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<section id="home" class="hero">
+<video autoplay muted loop playsinline class="hero-video">
+<source src="centronix1.mp4" type="video/mp4">
+</video>
+<div class="hero-overlay"></div>
+<div class="hero-content" id="heroContent">
+<div class="hero-badge"><div class="status-dot"></div> Accepting New Clients</div>
+<h1>Architecting <br><span class="gradient-text">Digital Dominance</span></h1>
+<p>We analyze your business, understand your market, and build systems that generate revenue.</p>
+<div class="hero-buttons">
+<a href="#services" class="btn-header" style="padding:14px 40px;font-size:1rem;">View Solutions</a>
+<a href="#work" class="btn-outline"><i class="fa-solid fa-play" style="font-size:0.8rem;"></i> See Our Work</a>
+</div>
+</div>
+</section>
 
-    <script>
-        // =========================================
-        // 1. FIREBASE INIT
-        // =========================================
-        var firebaseConfig = {
-            apiKey: "AIzaSyDenFBcNoqZPs0wnLDm4SCfmqsFKFurdtI",
-            authDomain: "centronix-admin-edd12.firebaseapp.com",
-            projectId: "centronix-admin-edd12",
-            storageBucket: "centronix-admin-edd12.firebasestorage.app",
-            messagingSenderId: "56818397978",
-            appId: "1:56818397978:web:ee0e9b3bc12180505bf2a3"
-        };
-        firebase.initializeApp(firebaseConfig);
-        var db = firebase.firestore();
+<div class="container">
+<div class="stats-grid" data-aos="fade-up" id="statsGrid">
+<div class="stat-item"><div class="stat-num" id="statProjectsNum" data-target="100" data-suffix="+">0</div><div class="stat-label">Projects Deployed</div></div>
+<div class="stat-item"><div class="stat-num" id="statRetentionNum" data-target="98" data-suffix="%">0</div><div class="stat-label">Client Retention</div></div>
+<div class="stat-item"><div class="stat-num" id="statInteractionsNum" data-target="50" data-suffix="M+">0</div><div class="stat-label">User Interactions</div></div>
+<div class="stat-item"><div class="stat-num" id="statUptimeNum" data-target="24" data-suffix="/7">0</div><div class="stat-label">System Uptime</div></div>
+</div>
+</div>
 
-        // =========================================
-        // 2. GLOBAL DATA
-        // =========================================
-        var companyData = { phone: '+94 77 123 4567', email: 'hello@centronix.lk', website: 'https://centronix.lk', name: 'Centronix', location: 'Sri Lanka', whatsapp: '' };
-        var chatConfig = { mode: 'stored', openaiKey: '', systemPrompt: '', maxTokens: 200, fallbackMessage: '' };
-        var botResponses = [];
+<section id="about" class="section reveal">
+<div class="container">
+<div class="about-grid">
+<div class="about-img-box" data-aos="fade-right">
+<img src="cen1.png" alt="Centronix Dashboard" loading="lazy">
+</div>
+<div data-aos="fade-left">
+<h2 style="font-family:'Space Grotesk';font-size:clamp(1.8rem,4vw,2.5rem);margin-bottom:1.5rem;">Why <span class="gradient-text">Centronix?</span></h2>
+<p style="color:var(--text-muted);margin-bottom:2rem;">In a world of templates, we build custom architectures. We ensure your platform is scalable, secure, and optimized for sales.</p>
+<div class="about-features-grid">
+<div class="about-feature"><i class="fa-solid fa-rocket" style="color:var(--primary);font-size:1.5rem;margin-bottom:0.8rem;display:block;"></i><h4 style="color:white;margin-bottom:0.5rem;">Scalable</h4><p style="font-size:0.85rem;color:#64748b;">Built for growth from day one.</p></div>
+<div class="about-feature"><i class="fa-solid fa-shield-halved" style="color:var(--accent);font-size:1.5rem;margin-bottom:0.8rem;display:block;"></i><h4 style="color:white;margin-bottom:0.5rem;">Secure</h4><p style="font-size:0.85rem;color:#64748b;">Enterprise-grade protection.</p></div>
+<div class="about-feature"><i class="fa-solid fa-bolt" style="color:#fbbf24;font-size:1.5rem;margin-bottom:0.8rem;display:block;"></i><h4 style="color:white;margin-bottom:0.5rem;">Fast</h4><p style="font-size:0.85rem;color:#64748b;">Optimized for speed.</p></div>
+<div class="about-feature"><i class="fa-solid fa-chart-line" style="color:var(--success);font-size:1.5rem;margin-bottom:0.8rem;display:block;"></i><h4 style="color:white;margin-bottom:0.5rem;">Results</h4><p style="font-size:0.85rem;color:#64748b;">Data-driven decisions.</p></div>
+</div>
+</div>
+</div>
+</div>
+</section>
 
-        // =========================================
-        // 3. UTILITY
-        // =========================================
-        function escapeHtml(text) { if (!text) return ''; var d = document.createElement('div'); d.textContent = text; return d.innerHTML; }
-        function replacePlaceholders(text) {
-            if (!text) return '';
-            return text.replace(/\{phone\}/g, companyData.phone).replace(/\{email\}/g, companyData.email).replace(/\{website\}/g, companyData.website).replace(/\{name\}/g, companyData.name).replace(/\{location\}/g, companyData.location);
-        }
-        function setStatData(id, value) {
-    if (!value) return;
-    var el = document.getElementById(id);
-    if (!el) return;
-    
-    var numStr = value.replace(/[^0-9]/g, '');
-    var num = parseInt(numStr) || 0;
-    var suffix = value.replace(/[0-9]/g, '').trim() || '';
-    
-    el.setAttribute('data-target', num);
-    el.setAttribute('data-suffix', suffix);
-    
-    // Animate to new value
-    var current = 0;
-    var increment = num / 60;
-    var timer = setInterval(function() {
-        current += increment;
-        if (current >= num) {
-            el.innerText = num + suffix;
-            clearInterval(timer);
-        } else {
-            el.innerText = Math.floor(current) + suffix;
-        }
-    }, 25);
+<section id="services" class="section reveal">
+<div class="container">
+<span class="section-label" data-aos="fade-up">What We Do</span>
+<h2 class="section-title" data-aos="fade-up">Our <span class="gradient-text">Expertise</span></h2>
+<div class="services-grid" id="servicesGrid">
+<div class="service-card" onclick="openModal('web')" data-aos="fade-up" data-aos-delay="100"><img src="web_dev.jpg" class="service-img" alt="Web Development" loading="lazy"><div class="service-info"><div><h3>Web Engineering</h3><p>Next.js & React based high-performance systems built for scale.</p></div><div class="arrow-link">View Specs <i class="fa-solid fa-arrow-right"></i></div></div></div>
+<div class="service-card" onclick="openModal('ai')" data-aos="fade-up" data-aos-delay="200"><img src="ai_brain.jpg" class="service-img" alt="AI Integration" loading="lazy"><div class="service-info"><div><h3>AI Integration</h3><p>Machine Learning & intelligent automation for your business.</p></div><div class="arrow-link">View Specs <i class="fa-solid fa-arrow-right"></i></div></div></div>
+<div class="service-card" onclick="openModal('mobile')" data-aos="fade-up" data-aos-delay="300"><img src="mobile_app.jpg" class="service-img" alt="Mobile Apps" loading="lazy"><div class="service-info"><div><h3>Mobile Apps</h3><p>Cross-platform iOS & Android development with Flutter.</p></div><div class="arrow-link">View Specs <i class="fa-solid fa-arrow-right"></i></div></div></div>
+<div class="service-card" onclick="openModal('market')" data-aos="fade-up" data-aos-delay="400"><img src="marketing.jpg" class="service-img" alt="Digital Marketing" loading="lazy"><div class="service-info"><div><h3>Digital Growth</h3><p>SEO, Analytics & Data-driven marketing strategies.</p></div><div class="arrow-link">View Specs <i class="fa-solid fa-arrow-right"></i></div></div></div>
+</div>
+</div>
+</section>
+
+<section id="work" class="section reveal">
+<div class="container">
+<span class="section-label" data-aos="fade-up">Portfolio</span>
+<h2 class="section-title" data-aos="fade-up">Featured <span class="gradient-text">Deployment</span></h2>
+<div class="featured-project" data-aos="fade-up">
+<div>
+<span class="tech-tag">Case Study</span>
+<h3 style="font-family:'Space Grotesk';font-size:clamp(1.5rem,3vw,2rem);margin:1.5rem 0 1rem;">Centronix Client App</h3>
+<p style="color:var(--text-muted);margin-bottom:2rem;line-height:1.8;">A fully integrated mobile application allowing clients to track project progress, view invoices, and chat with our engineering team in real-time.</p>
+<div style="margin-bottom:2rem;"><span class="tech-tag">Flutter</span><span class="tech-tag">Firebase</span><span class="tech-tag">Node.js</span><span class="tech-tag">REST API</span></div>
+<a href="#contact" class="btn-header" style="padding:12px 30px;">Start Similar Project</a>
+</div>
+<div class="project-mockup"><img src="cen2.png" alt="App Mockup" loading="lazy"></div>
+</div>
+</div>
+</section>
+
+<section id="testimonials" class="section reveal">
+<div class="container">
+<span class="section-label" data-aos="fade-up">Testimonials</span>
+<h2 class="section-title" data-aos="fade-up">Client <span class="gradient-text">Reviews</span></h2>
+<div class="testimonials-wrapper" id="testimonialsContainer" data-aos="fade-up">
+<div style="text-align:center;width:100%;padding:2rem;color:var(--text-muted);"><i class="fa-solid fa-spinner fa-spin" style="font-size:1.5rem;"></i><p style="margin-top:1rem;">Loading reviews...</p></div>
+</div>
+</div>
+</section>
+
+<section id="portfolioShowcase" class="section reveal">
+<div class="container">
+<span class="section-label" data-aos="fade-up">Our Clients</span>
+<h2 class="section-title" data-aos="fade-up">Brands We've <span class="gradient-text">Worked With</span></h2>
+<div class="portfolio-showcase" id="portfolioGrid" data-aos="fade-up"></div>
+</div>
+</section>
+
+<section id="contact" class="section reveal">
+<div class="container">
+<span class="section-label" data-aos="fade-up">Get In Touch</span>
+<h2 class="section-title" data-aos="fade-up">Initialize <span class="gradient-text">Project</span></h2>
+<div class="contact-box" data-aos="fade-up">
+<form id="contactForm">
+<div class="form-grid">
+<input type="text" class="input-field" id="formName" placeholder="Your Name" required>
+<input type="email" class="input-field" id="formEmail" placeholder="Your Email" required>
+</div>
+<select class="input-field" id="formService">
+<option value="" disabled selected>Select Service</option>
+<option value="web">Web Engineering</option>
+<option value="ai">AI Integration</option>
+<option value="mobile">Mobile App</option>
+<option value="marketing">Digital Growth</option>
+<option value="other">Other</option>
+</select>
+<input type="text" class="input-field" id="formBudget" placeholder="Budget Range (Optional)">
+<textarea class="input-field" id="formMessage" rows="4" placeholder="Tell us about your project..." required></textarea>
+<button type="submit" class="btn-header" id="submitBtn" style="width:100%;padding:15px;font-size:1rem;"><i class="fa-solid fa-paper-plane" style="margin-right:8px;"></i> Initialize Project</button>
+<div class="form-status" id="formStatus"></div>
+</form>
+</div>
+</div>
+</section>
+
+<footer>
+<div class="container">
+<div class="footer-grid">
+<div class="footer-brand">
+<a href="#home" class="logo" style="margin-bottom:1rem;"><img src="centronix_logo_only.png" alt="Centronix" style="height:35px;"><span>CENTRONIX</span></a>
+<p id="footerAbout">Empowering enterprises with next-generation digital architecture.</p>
+<div class="social-icons">
+<a href="javascript:void(0)" class="s-icon" id="footerFb" aria-label="Facebook" style="display:none;"><i class="fa-brands fa-facebook-f"></i></a>
+<a href="javascript:void(0)" class="s-icon" id="footerLi" aria-label="LinkedIn" style="display:none;"><i class="fa-brands fa-linkedin-in"></i></a>
+<a href="javascript:void(0)" class="s-icon" id="footerIg" aria-label="Instagram" style="display:none;"><i class="fa-brands fa-instagram"></i></a>
+<a href="javascript:void(0)" class="s-icon" id="footerGh" aria-label="GitHub" style="display:none;"><i class="fa-brands fa-github"></i></a>
+</div>
+</div>
+<div class="footer-col"><h4>Company</h4><ul><li><a href="#about">About Us</a></li><li><a href="#work">Our Work</a></li><li><a href="#testimonials">Reviews</a></li><li><a href="#contact">Careers</a></li></ul></div>
+<div class="footer-col"><h4>Services</h4><ul><li><a href="#services">Web Engineering</a></li><li><a href="#services">Mobile Apps</a></li><li><a href="#services">AI Integration</a></li><li><a href="#services">Consulting</a></li></ul></div>
+<div class="footer-col"><h4>Legal</h4><ul><li><a href="#">Privacy Policy</a></li><li><a href="#">Terms of Service</a></li><li><a href="#">Cookie Policy</a></li><li><a href="#">Sitemap</a></li></ul></div>
+</div>
+<div class="footer-bottom">
+<div>&copy; 2026 Centronix. All rights reserved.</div>
+<div>Crafted with <span style="color:var(--danger);">♥</span> in Sri Lanka</div>
+</div>
+</div>
+</footer>
+
+<button class="chat-toggle" onclick="toggleChat()" aria-label="Chat">
+<i class="fa-solid fa-robot"></i>
+<div class="chat-badge" id="chatBadge">1</div>
+</button>
+
+<div class="chat-window" id="chatWindow">
+<div class="chat-header">
+<img src="centronix_logo_only.png" class="chat-header-img" alt="Bot">
+<div><h4 style="margin:0;font-family:'Space Grotesk';font-size:1rem;">Centronix AI</h4><small style="color:#4ade80;display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;background:#4ade80;border-radius:50%;display:inline-block;"></span> Online</small></div>
+<button class="chat-header-close" onclick="toggleChat()">&times;</button>
+</div>
+<div class="chat-messages" id="chatBody">
+<div class="chat-msg chat-msg-bot"><img src="centronix_logo_only.png" class="chat-msg-avatar" alt="Bot"><div class="chat-bubble chat-bubble-bot">👋 Hello! I'm Centronix AI assistant. How can I help you today?</div></div>
+<div class="chat-quick-btns">
+<button class="chat-quick-btn" onclick="quickChat('pricing')">💰 Pricing</button>
+<button class="chat-quick-btn" onclick="quickChat('services')">🛠 Services</button>
+<button class="chat-quick-btn" onclick="quickChat('contact')">📞 Contact</button>
+</div>
+</div>
+<div class="chat-input-area">
+<input type="text" id="chatInput" class="chat-input" placeholder="Type your message...">
+<button onclick="handleChat()" class="chat-send" aria-label="Send"><i class="fa-solid fa-paper-plane"></i></button>
+</div>
+</div>
+
+<div class="modal" id="serviceModal" onclick="closeModal()">
+<div class="modal-content" onclick="event.stopPropagation()">
+<button class="modal-close" onclick="closeModal()">&times;</button>
+<div id="modalBody"></div>
+</div>
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+// =========================================
+// 1. FIREBASE INIT
+// =========================================
+var firebaseConfig = {
+apiKey: "AIzaSyDenFBcNoqZPs0wnLDm4SCfmqsFKFurdtI",
+authDomain: "centronix-admin-edd12.firebaseapp.com",
+projectId: "centronix-admin-edd12",
+storageBucket: "centronix-admin-edd12.firebasestorage.app",
+messagingSenderId: "56818397978",
+appId: "1:56818397978:web:ee0e9b3bc12180505bf2a3"
+};
+firebase.initializeApp(firebaseConfig);
+var db = firebase.firestore();
+
+// =========================================
+// 2. GLOBAL DATA
+// =========================================
+var companyData = { phone: '+94 77 123 4567', email: 'hello@centronix.lk', website: 'https://centronix.lk', name: 'Centronix', location: 'Sri Lanka', whatsapp: '' };
+var chatConfig = { mode: 'stored', openaiKey: '', systemPrompt: '', maxTokens: 200, fallbackMessage: '' };
+var botResponses = [];
+
+// =========================================
+// 3. UTILITY
+// =========================================
+function escapeHtml(text) { if (!text) return ''; var d = document.createElement('div'); d.textContent = text; return d.innerHTML; }
+function replacePlaceholders(text) {
+if (!text) return '';
+return text.replace(/\{phone\}/g, companyData.phone).replace(/\{email\}/g, companyData.email).replace(/\{website\}/g, companyData.website).replace(/\{name\}/g, companyData.name).replace(/\{location\}/g, companyData.location);
 }
-        function setSocialLink(id, url) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    
-    if (!url || url.trim() === '' || url.trim() === '#') {
-        // No URL - hide the icon
-        el.style.display = 'none';
-        return;
-    }
-    
-    // Make sure URL has https://
-    var finalUrl = url.trim();
-    if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
-        finalUrl = 'https://' + finalUrl;
-    }
-    
-    el.href = finalUrl;
-    el.target = '_blank';
-    el.rel = 'noopener noreferrer';
-    el.style.display = 'flex';
-    el.style.pointerEvents = 'auto';
-    el.style.cursor = 'pointer';
-    
-    // Remove old click handlers and add new one
-    el.onclick = function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        window.open(finalUrl, '_blank', 'noopener,noreferrer');
-    };
+function setStatData(id, value) {
+if (!value) return;
+var el = document.getElementById(id);
+if (!el) return;
+var numStr = value.replace(/[^0-9]/g, '');
+var num = parseInt(numStr) || 0;
+var suffix = value.replace(/[0-9]/g, '').trim() || '';
+el.setAttribute('data-target', num);
+el.setAttribute('data-suffix', suffix);
+var current = 0;
+var increment = num / 60;
+var timer = setInterval(function() {
+current += increment;
+if (current >= num) {
+el.innerText = num + suffix;
+clearInterval(timer);
+} else {
+el.innerText = Math.floor(current) + suffix;
+}
+}, 25);
+}
+function setSocialLink(id, url) {
+var el = document.getElementById(id);
+if (!el) return;
+if (!url || url.trim() === '' || url.trim() === '#') {
+el.style.display = 'none';
+return;
+}
+var finalUrl = url.trim();
+if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+finalUrl = 'https://' + finalUrl;
+}
+el.href = finalUrl;
+el.target = '_blank';
+el.rel = 'noopener noreferrer';
+el.style.display = 'flex';
+el.style.pointerEvents = 'auto';
+el.style.cursor = 'pointer';
+el.onclick = function(e) {
+e.preventDefault();
+e.stopPropagation();
+window.open(finalUrl, '_blank', 'noopener,noreferrer');
+};
 }
 
-        // =========================================
-        // 4. DATA LOADERS
-        // =========================================
-        async function loadCompanyData() {
-    var doc = await db.collection('settings').doc('company').get();
-    if (!doc.exists) return;
-    var d = doc.data();
-    companyData.phone = d.phone || '+94 77 123 4567';
-    companyData.email = d.email || 'hello@centronix.lk';
-    companyData.website = d.website || 'https://centronix.lk';
-    companyData.name = d.name || 'Centronix';
-    companyData.location = d.location || 'Sri Lanka';
-    companyData.whatsapp = d.socialWhatsapp || '';
-    setStatData('statProjectsNum', d.statProjects);    // ← thiyenawada?
-    setStatData('statRetentionNum', d.statRetention);   // ← thiyenawada?
-    setStatData('statInteractionsNum', d.statInteractions);
-    setStatData('statUptimeNum', d.statUptime);
-    setSocialLink('footerFb', d.socialFacebook);
-    setSocialLink('footerLi', d.socialLinkedin);
-    setSocialLink('footerIg', d.socialInstagram);
-    setSocialLink('footerGh', d.socialGithub);
-    if (d.about) { var fa = document.getElementById('footerAbout'); if (fa) fa.textContent = d.about; }
+// =========================================
+// 4. DATA LOADERS
+// =========================================
+async function loadCompanyData() {
+var doc = await db.collection('settings').doc('company').get();
+if (!doc.exists) return;
+var d = doc.data();
+companyData.phone = d.phone || '+94 77 123 4567';
+companyData.email = d.email || 'hello@centronix.lk';
+companyData.website = d.website || 'https://centronix.lk';
+companyData.name = d.name || 'Centronix';
+companyData.location = d.location || 'Sri Lanka';
+companyData.whatsapp = d.socialWhatsapp || '';
+setStatData('statProjectsNum', d.statProjects);
+setStatData('statRetentionNum', d.statRetention);
+setStatData('statInteractionsNum', d.statInteractions);
+setStatData('statUptimeNum', d.statUptime);
+setSocialLink('footerFb', d.socialFacebook);
+setSocialLink('footerLi', d.socialLinkedin);
+setSocialLink('footerIg', d.socialInstagram);
+setSocialLink('footerGh', d.socialGithub);
+if (d.about) { var fa = document.getElementById('footerAbout'); if (fa) fa.textContent = d.about; }
 }
 
 async function loadTestimonialsFromFirebase() {
-    var container = document.getElementById('testimonialsContainer');
-    if (!container) return;
-    try {
-        var snapshot = await db.collection('testimonials').where('status', '==', 'active').orderBy('createdAt', 'desc').get();
-        if (snapshot.empty) { showDefaultTestimonials(); return; }
-        var html = '';
-        snapshot.forEach(function(doc) {
-            var d = doc.data();
-            var stars = ''; for (var i = 0; i < 5; i++) stars += i < (d.rating || 5) ? '★' : '☆';
-            var initial = (d.name || 'U').charAt(0).toUpperCase();
-            html += '<div class="testimonial-card"><div class="testimonial-top"><div class="testimonial-stars">' + stars + '</div><p class="testimonial-text">"' + escapeHtml(d.review || '') + '"</p></div><div class="testimonial-author"><div class="testimonial-avatar">' + initial + '</div><div><div class="testimonial-name">' + escapeHtml(d.name || '') + '</div><div class="testimonial-position">' + escapeHtml(d.position || '') + '</div></div></div></div>';
-        });
-        container.innerHTML = html;
-    } catch (e) { console.error('Testimonials error:', e); showDefaultTestimonials(); }
-}
-
-   function showDefaultTestimonials() {
-    var container = document.getElementById('testimonialsContainer');
-    if (!container) return;
-    var defaults = [
-        { name: 'Alex Fernando', position: 'CEO, TechVentures', review: 'Centronix transformed our entire digital presence. Their team delivered beyond expectations.', rating: 5 },
-        { name: 'Sarah Perera', position: 'CTO, DataFlow Inc', review: 'The AI integration reduced our processing time by 70%. Incredible engineering team.', rating: 5 },
-        { name: 'Mark Silva', position: 'Founder, AppStart', review: 'Professional, responsive, and highly skilled. Our mobile app received outstanding reviews.', rating: 5 },
-        { name: 'Ravindu Jayasinghe', position: 'Director, ShopEase', review: 'From concept to deployment, Centronix handled everything flawlessly.', rating: 5 }
-    ];
-    var html = '';
-    defaults.forEach(function(d) {
-        var stars = ''; for (var i = 0; i < 5; i++) stars += i < d.rating ? '★' : '☆';
-        html += '<div class="testimonial-card"><div class="testimonial-top"><div class="testimonial-stars">' + stars + '</div><p class="testimonial-text">"' + d.review + '"</p></div><div class="testimonial-author"><div class="testimonial-avatar">' + d.name.charAt(0) + '</div><div><div class="testimonial-name">' + d.name + '</div><div class="testimonial-position">' + d.position + '</div></div></div></div>';
-    });
-    container.innerHTML = html;
-}
-
-        function loadPortfolioFromFirebase() {
-            var grid = document.getElementById('portfolioGrid');
-            var section = document.getElementById('portfolioShowcase');
-            if (!grid) return;
-            db.collection('portfolio').get().then(function(snapshot) {
-                if (snapshot.empty) { section.style.display = 'none'; return; }
-                grid.innerHTML = '';
-                var activeCount = 0;
-                snapshot.forEach(function(doc) {
-                    var data = doc.data();
-                    if (data.status !== 'active') return;
-                    activeCount++;
-                    var tagsHTML = '';
-                    if (data.tech) { data.tech.split(',').forEach(function(tag) { var t = tag.trim(); if (t) tagsHTML += '<span>' + t + '</span>'; }); }
-                    var linkHTML = '';
-                    if (data.url) linkHTML = '<a href="' + data.url + '" target="_blank" class="portfolio-link">View Project →</a>';
-                    var imgSrc = data.image || 'https://placehold.co/400x200/0f172a/334155?text=' + encodeURIComponent(data.name || 'Project');
-                    var catHTML = '';
-                    if (data.category) catHTML = '<span class="portfolio-category">' + data.category.toUpperCase() + '</span>';
-                    var card = document.createElement('div');
-                    card.className = 'portfolio-card';
-                    card.innerHTML = '<img src="' + imgSrc + '" alt="' + (data.name || '') + '" onerror="this.src=\'https://placehold.co/400x200/0f172a/334155?text=No+Image\'"><div class="portfolio-card-info">' + catHTML + '<h3>' + (data.name || 'Untitled') + '</h3><p>' + (data.description || '') + '</p><div class="portfolio-card-tags">' + tagsHTML + '</div>' + linkHTML + '</div>';
-                    grid.appendChild(card);
-                });
-                if (activeCount > 0) { section.style.display = 'block'; section.classList.add('visible'); } else { section.style.display = 'none'; }
-            }).catch(function(error) { console.error('Portfolio error:', error); section.style.display = 'none'; });
-        }
-
-
-        // =========================================
-// 5. MASTER LOADER + FAST PRELOADER
-// =========================================
-
-var preloaderHidden = false;
-
-function hidePreloader() {
-    if (preloaderHidden) return;
-    preloaderHidden = true;
-
-    var preloader = document.getElementById('preloader');
-    if (preloader) {
-        preloader.style.opacity = '0';
-        preloader.style.pointerEvents = 'none';
-        setTimeout(function () {
-            preloader.style.display = 'none';
-        }, 300);
-    }
-
-    // Init animations immediately
-    if (typeof AOS !== 'undefined') {
-        AOS.init({
-            duration: 700,
-            once: true,
-            offset: 60
-        });
-    }
-
-    document.querySelectorAll('.reveal').forEach(function (el) {
-        el.classList.add('active');
-    });
-}
-
-// 🚀 LOAD FAST ON DOM READY (not full window load)
-document.addEventListener('DOMContentLoaded', function () {
-
-    var status = document.getElementById('loadStatus');
-    if (status) status.innerText = "Loading...";
-
-    // 🔥 Hide preloader VERY FAST
-    setTimeout(hidePreloader, 500);
-
-    // 🔄 Load Firebase data in background (non-blocking)
-    setTimeout(function () {
-
-        loadCompanyData().catch(console.error);
-        loadTestimonialsFromFirebase().catch(console.error);
-        loadPortfolioFromFirebase().catch(console.error);
-        loadServicesFromFirebase().catch(console.error);
-        loadBotResponsesFromFirebase().catch(console.error);
-        loadChatConfigFromFirebase().catch(console.error);
-
-        console.log("⚡ Background data loading started");
-
-    }, 600);
-
+var container = document.getElementById('testimonialsContainer');
+if (!container) return;
+try {
+var snapshot = await db.collection('testimonials').where('status', '==', 'active').orderBy('createdAt', 'desc').get();
+if (snapshot.empty) { showDefaultTestimonials(); return; }
+var html = '';
+snapshot.forEach(function(doc) {
+var d = doc.data();
+var stars = ''; for (var i = 0; i < 5; i++) stars += i < (d.rating || 5) ? '⭐ ' : '☆ ';
+var initial = (d.name || 'U').charAt(0).toUpperCase();
+html += '<div class="testimonial-card"><div class="testimonial-top"><div class="testimonial-stars">' + stars + '</div><p class="testimonial-text">"' + escapeHtml(d.review || '') + '"</p></div><div class="testimonial-author"><div class="testimonial-avatar">' + initial + '</div><div><div class="testimonial-name">' + escapeHtml(d.name || '') + '</div><div class="testimonial-position">' + escapeHtml(d.position || '') + '</div></div></div></div>';
 });
+container.innerHTML = html;
+} catch (e) { console.error('Testimonials error:', e); showDefaultTestimonials(); }
+}
 
-// 🛑 Safety fallback
-setTimeout(hidePreloader, 2000);
+function showDefaultTestimonials() {
+var container = document.getElementById('testimonialsContainer');
+if (!container) return;
+var defaults = [
+{ name: 'Alex Fernando', position: 'CEO, TechVentures', review: 'Centronix transformed our entire digital presence. Their team delivered beyond expectations.', rating: 5 },
+{ name: 'Sarah Perera', position: 'CTO, DataFlow Inc', review: 'The AI integration reduced our processing time by 70%. Incredible engineering team.', rating: 5 },
+{ name: 'Mark Silva', position: 'Founder, AppStart', review: 'Professional, responsive, and highly skilled. Our mobile app received outstanding reviews.', rating: 5 },
+{ name: 'Ravindu Jayasinghe', position: 'Director, ShopEase', review: 'From concept to deployment, Centronix handled everything flawlessly.', rating: 5 }
+];
+var html = '';
+defaults.forEach(function(d) {
+var stars = ''; for (var i = 0; i < 5; i++) stars += i < d.rating ? '⭐ ' : '☆ ';
+html += '<div class="testimonial-card"><div class="testimonial-top"><div class="testimonial-stars">' + stars + '</div><p class="testimonial-text">"' + d.review + '"</p></div><div class="testimonial-author"><div class="testimonial-avatar">' + d.name.charAt(0) + '</div><div><div class="testimonial-name">' + d.name + '</div><div class="testimonial-position">' + d.position + '</div></div></div></div>';
+});
+container.innerHTML = html;
+}
+
+function loadPortfolioFromFirebase() {
+var grid = document.getElementById('portfolioGrid');
+var section = document.getElementById('portfolioShowcase');
+if (!grid) return;
+db.collection('portfolio').get().then(function(snapshot) {
+if (snapshot.empty) { section.style.display = 'none'; return; }
+grid.innerHTML = '';
+var activeCount = 0;
+snapshot.forEach(function(doc) {
+var data = doc.data();
+if (data.status !== 'active') return;
+activeCount++;
+var tagsHTML = '';
+if (data.tech) { data.tech.split(',').forEach(function(tag) { var t = tag.trim(); if (t) tagsHTML += '<span>' + t + '</span>'; }); }
+var linkHTML = '';
+if (data.url) linkHTML = '<a href="' + data.url + '" target="_blank" class="portfolio-link">View Project →</a>';
+var imgSrc = data.image || 'https://placehold.co/400x200/0f172a/334155?text=' + encodeURIComponent(data.name || 'Project');
+var catHTML = '';
+if (data.category) catHTML = '<span class="portfolio-category">' + data.category.toUpperCase() + '</span>';
+var card = document.createElement('div');
+card.className = 'portfolio-card';
+card.innerHTML = '<img src="' + imgSrc + '" alt="' + (data.name || '') + '" onerror="this.src=\'https://placehold.co/400x200/0f172a/334155?text=No+Image\'"><div class="portfolio-card-info">' + catHTML + '<h3>' + (data.name || 'Untitled') + '</h3><p>' + (data.description || '') + '</p><div class="portfolio-card-tags">' + tagsHTML + '</div>' + linkHTML + '</div>';
+grid.appendChild(card);
+});
+if (activeCount > 0) { section.style.display = 'block'; section.classList.add('visible'); } else { section.style.display = 'none'; }
+}).catch(function(error) { console.error('Portfolio error:', error); section.style.display = 'none'; });
+}
+
 // =========================================
 // SERVICES LOADER FROM FIREBASE
 // =========================================
 async function loadServicesFromFirebase() {
-    try {
-        var snapshot = await db.collection('services').get();
-        var grid = document.getElementById('servicesGrid');
-        if (!grid) return;
-
-        var services = [];
-        snapshot.forEach(function(doc) {
-            var d = doc.data();
-            d._id = doc.id;
-            if (d.status === 'active') {
-                services.push(d);
-            }
-        });
-
-        if (services.length === 0) {
-            console.log('No services in Firebase, using defaults');
-            return;
-        }
-
-        // Store services data globally for modal
-        window.firebaseServices = services;
-
-        var html = '';
-        services.forEach(function(s, index) {
-            var imgSrc = s.image || 'https://placehold.co/600x400/0f172a/334155?text=' + encodeURIComponent(s.name || 'Service');
-            var delay = (index + 1) * 100;
-
-            html += '<div class="service-card" onclick="openServiceDetail(' + index + ')" data-aos="fade-up" data-aos-delay="' + delay + '">' +
-                '<img src="' + imgSrc + '" class="service-img" alt="' + escapeHtml(s.name || '') + '" loading="lazy" onerror="this.src=\'https://placehold.co/600x400/0f172a/334155?text=Service\'">' +
-                '<div class="service-info">' +
-                    '<div>' +
-                        '<h3>' + escapeHtml(s.name || 'Service') + '</h3>' +
-                        '<p>' + escapeHtml(s.shortDesc || s.fullDesc || '') + '</p>' +
-                    '</div>' +
-                    '<div class="arrow-link">Learn More <i class="fa-solid fa-arrow-right"></i></div>' +
-                '</div>' +
-            '</div>';
-        });
-
-        grid.innerHTML = html;
-        console.log('✅ Services loaded: ' + services.length);
-
-    } catch (e) {
-        console.error('Services load error:', e);
-    }
+try {
+var snapshot = await db.collection('services').get();
+var grid = document.getElementById('servicesGrid');
+if (!grid) return;
+var services = [];
+snapshot.forEach(function(doc) {
+var d = doc.data();
+d._id = doc.id;
+if (d.status === 'active') {
+services.push(d);
+}
+});
+if (services.length === 0) {
+console.log('No services in Firebase, using defaults');
+return;
+}
+window.firebaseServices = services;
+var html = '';
+services.forEach(function(s, index) {
+var imgSrc = s.image || 'https://placehold.co/600x400/0f172a/334155?text=' + encodeURIComponent(s.name || 'Service');
+var delay = (index + 1) * 100;
+html += '<div class="service-card" onclick="openServiceDetail(' + index + ')" data-aos="fade-up" data-aos-delay="' + delay + '">' +
+'<img src="' + imgSrc + '" class="service-img" alt="' + escapeHtml(s.name || '') + '" loading="lazy" onerror="this.src=\'https://placehold.co/600x400/0f172a/334155?text=Service\'">' +
+'<div class="service-info">' +
+'<div>' +
+'<h3>' + escapeHtml(s.name || 'Service') + '</h3>' +
+'<p>' + escapeHtml(s.shortDesc || s.fullDesc || '') + '</p>' +
+'</div>' +
+'<div class="arrow-link">Learn More <i class="fa-solid fa-arrow-right"></i></div>' +
+'</div>' +
+'</div>';
+});
+grid.innerHTML = html;
+console.log('✅ Services loaded: ' + services.length);
+} catch (e) {
+console.error('Services load error:', e);
+}
 }
 
+async function loadBotResponsesFromFirebase() {
+try {
+var snapshot = await db.collection('botResponses').where('status', '==', 'active').orderBy('priority', 'desc').get();
+botResponses = [];
+snapshot.forEach(function(doc) { botResponses.push(doc.data()); });
+} catch (e) { botResponses = []; }
+}
 
-        async function loadBotResponsesFromFirebase() {
-            try {
-                var snapshot = await db.collection('botResponses').where('status', '==', 'active').orderBy('priority', 'desc').get();
-                botResponses = [];
-                snapshot.forEach(function(doc) { botResponses.push(doc.data()); });
-            } catch (e) { botResponses = []; }
-        }
+async function loadChatConfigFromFirebase() {
+try {
+var doc = await db.collection('settings').doc('aiConfig').get();
+if (doc.exists) {
+var d = doc.data();
+chatConfig.mode = d.chatMode || 'stored';
+chatConfig.openaiKey = d.openaiKey || '';
+chatConfig.systemPrompt = d.systemPrompt || '';
+chatConfig.maxTokens = d.maxTokens || 200;
+chatConfig.fallbackMessage = d.fallbackMessage || '';
+}
+} catch (e) { console.error('Chat config error:', e); }
+}
 
-        async function loadChatConfigFromFirebase() {
-            try {
-                var doc = await db.collection('settings').doc('aiConfig').get();
-                if (doc.exists) {
-                    var d = doc.data();
-                    chatConfig.mode = d.chatMode || 'stored';
-                    chatConfig.openaiKey = d.openaiKey || '';
-                    chatConfig.systemPrompt = d.systemPrompt || '';
-                    chatConfig.maxTokens = d.maxTokens || 200;
-                    chatConfig.fallbackMessage = d.fallbackMessage || '';
-                }
-            } catch (e) { console.error('Chat config error:', e); }
-        }
+// =========================================
+// 5. MASTER LOADER + PRELOADER
+// =========================================
+var preloaderHidden = false;
+function hidePreloader() {
+if (preloaderHidden) return;
+preloaderHidden = true;
+var preloader = document.getElementById('preloader');
+if (preloader) {
+preloader.style.opacity = '0';
+preloader.style.pointerEvents = 'none';
+setTimeout(function() { preloader.style.display = 'none'; }, 400);
+}
+if (typeof AOS !== 'undefined') {
+AOS.init({ duration: 800, once: true, offset: 80, easing: 'ease-out-cubic' });
+}
+var reveals = document.querySelectorAll('.reveal');
+for (var i = 0; i < reveals.length; i++) {
+reveals[i].classList.add('active');
+}
+}
 
+window.addEventListener('load', function() {
+var status = document.getElementById('loadStatus');
+setTimeout(function() { if (status) status.innerText = "LOADING..."; }, 200);
+setTimeout(function() { if (status) status.innerText = "ALMOST READY..."; }, 800);
 
+Promise.allSettled([
+loadCompanyData(),
+loadTestimonialsFromFirebase(),
+loadPortfolioFromFirebase(),
+loadServicesFromFirebase(),
+loadBotResponsesFromFirebase(),
+loadChatConfigFromFirebase()
+]).then(function() {
+console.log('✅ All data loaded');
+hidePreloader();
+}).catch(function(e) {
+console.error('Load error:', e);
+showDefaultTestimonials();
+hidePreloader();
+});
 
-        // =========================================
-        // 7. NAVBAR + SCROLL
-        // =========================================
-        var navbar = document.getElementById('navbar');
-        var backToTop = document.getElementById('backToTop');
-        var lastScrollPos = 0;
+setTimeout(function() { hidePreloader(); }, 1500);
 
-        window.addEventListener('scroll', function() {
-            var scrollY = window.scrollY;
-            if (navbar) {
-                navbar.classList.toggle('scrolled', scrollY > 50);
-                if (scrollY > lastScrollPos && scrollY > 200) navbar.classList.add('hidden');
-                else navbar.classList.remove('hidden');
-            }
-            if (backToTop) backToTop.classList.toggle('visible', scrollY > 500);
+setTimeout(function() {
+var preloader = document.getElementById('preloader');
+if (preloader && preloader.style.display !== 'none') {
+preloader.style.display = 'none';
+}
+}, 3000);
+});
 
-            var sections = document.querySelectorAll('section[id]');
-            var navLinks = document.querySelectorAll('.nav-link');
-            for (var i = 0; i < sections.length; i++) {
-                var sec = sections[i];
-                var secTop = sec.offsetTop - 200;
-                if (scrollY >= secTop && scrollY < secTop + sec.offsetHeight) {
-                    for (var j = 0; j < navLinks.length; j++) {
-                        navLinks[j].classList.remove('active');
-                        if (navLinks[j].getAttribute('href') === '#' + sec.getAttribute('id')) navLinks[j].classList.add('active');
-                    }
-                }
-            }
+// =========================================
+// 7. NAVBAR + SCROLL
+// =========================================
+var navbar = document.getElementById('navbar');
+var backToTop = document.getElementById('backToTop');
+var lastScrollPos = 0;
 
-            var reveals = document.querySelectorAll('.reveal');
-            for (var k = 0; k < reveals.length; k++) {
-                if (reveals[k].getBoundingClientRect().top < window.innerHeight - 80) reveals[k].classList.add('active');
-            }
+window.addEventListener('scroll', function() {
+var scrollY = window.scrollY;
+if (navbar) {
+navbar.classList.toggle('scrolled', scrollY > 50);
+if (scrollY > lastScrollPos && scrollY > 200) navbar.classList.add('hidden');
+else navbar.classList.remove('hidden');
+}
+if (backToTop) backToTop.classList.toggle('visible', scrollY > 500);
 
-            var heroContent = document.getElementById('heroContent');
-            if (heroContent && scrollY < 800) {
-                heroContent.style.transform = 'translateY(' + (scrollY * 0.3) + 'px)';
-                heroContent.style.opacity = Math.max(0, 1 - (scrollY / 700));
-            }
+var sections = document.querySelectorAll('section[id]');
+var navLinks = document.querySelectorAll('.nav-link');
+for (var i = 0; i < sections.length; i++) {
+var sec = sections[i];
+var secTop = sec.offsetTop - 200;
+if (scrollY >= secTop && scrollY < secTop + sec.offsetHeight) {
+for (var j = 0; j < navLinks.length; j++) {
+navLinks[j].classList.remove('active');
+if (navLinks[j].getAttribute('href') === '#' + sec.getAttribute('id')) navLinks[j].classList.add('active');
+}
+}
+}
 
-            lastScrollPos = scrollY;
-        });
+var reveals = document.querySelectorAll('.reveal');
+for (var k = 0; k < reveals.length; k++) {
+if (reveals[k].getBoundingClientRect().top < window.innerHeight - 80)
+reveals[k].classList.add('active');
+}
 
-        // =========================================
-        // 8. MOBILE MENU
-        // =========================================
-        function toggleMenu() {
-            var mobileNav = document.getElementById('mobileNav');
-            if (!mobileNav) return;
-            mobileNav.classList.toggle('active');
-            document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
-        }
+var heroContent = document.getElementById('heroContent');
+if (heroContent && scrollY < 800) {
+heroContent.style.transform = 'translateY(' + (scrollY * 0.3) + 'px)';
+heroContent.style.opacity = Math.max(0, 1 - (scrollY / 700));
+}
 
-        // =========================================
-        // 9. COUNTERS
-        // =========================================
-        var countersStarted = false;
-        function startCounters() {
-            if (countersStarted) return;
-            countersStarted = true;
-            var counters = document.querySelectorAll('.stat-num');
-            for (var i = 0; i < counters.length; i++) {
-                (function(counter) {
-                    var target = parseInt(counter.getAttribute('data-target')) || 0;
-                    var suffix = counter.getAttribute('data-suffix') || '';
-                    var current = 0;
-                    var increment = target / 80;
-                    var timer = setInterval(function() {
-                        current += increment;
-                        if (current >= target) { counter.innerText = target + suffix; clearInterval(timer); }
-                        else counter.innerText = Math.floor(current) + suffix;
-                    }, 25);
-                })(counters[i]);
-            }
-        }
-        var statsEl = document.getElementById('statsGrid');
-        if (statsEl && 'IntersectionObserver' in window) {
-            var observer = new IntersectionObserver(function(entries) {
-                if (entries[0].isIntersecting) { startCounters(); observer.unobserve(statsEl); }
-            }, { threshold: 0.3 });
-            observer.observe(statsEl);
-        }
+lastScrollPos = scrollY;
+}, { passive: true });
 
-        // =========================================
-        // 10. SMOOTH SCROLL
-        // =========================================
-        var scrollLinks = document.querySelectorAll('a[href^="#"]');
-        for (var sl = 0; sl < scrollLinks.length; sl++) {
-            scrollLinks[sl].addEventListener('click', function(e) {
-                e.preventDefault();
-                var targetId = this.getAttribute('href');
-                if (!targetId || targetId === '#') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
-                var target = document.querySelector(targetId);
-                if (target) window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 100, behavior: 'smooth' });
-            });
-        }
+// =========================================
+// 8. MOBILE MENU
+// =========================================
+function toggleMenu() {
+var mobileNav = document.getElementById('mobileNav');
+if (!mobileNav) return;
+mobileNav.classList.toggle('active');
+document.body.style.overflow = mobileNav.classList.contains('active') ? 'hidden' : '';
+}
 
-        // =========================================
-        // 11. CHATBOT
-        // =========================================
-        var chatOpen = false;
-        function toggleChat() {
-            chatOpen = !chatOpen;
-            var win = document.getElementById('chatWindow');
-            if (win) { if (chatOpen) win.classList.add('active'); else win.classList.remove('active'); }
-            var badge = document.getElementById('chatBadge');
-            if (badge) badge.style.display = 'none';
-        }
-        function quickChat(type) {
-            var msgs = { 'pricing': 'Can you tell me about pricing?', 'services': 'What services do you offer?', 'contact': 'How can I contact your team?' };
-            var input = document.getElementById('chatInput');
-            if (input) { input.value = msgs[type] || ''; handleChat(); }
-        }
-        function findResponse(userText) {
-            var lower = userText.toLowerCase();
-            for (var i = 0; i < botResponses.length; i++) {
-                if (!botResponses[i].keywords) continue;
-                var keys = botResponses[i].keywords.split(',');
-                for (var j = 0; j < keys.length; j++) {
-                    var key = keys[j].trim().toLowerCase();
-                    if (key && lower.indexOf(key) !== -1) return replacePlaceholders(botResponses[i].response);
-                }
-            }
-            return null;
-        }
-        async function callOpenAI(userText) {
-            if (!chatConfig.openaiKey) return null;
-            try {
-                var sysMsg = replacePlaceholders(chatConfig.systemPrompt || 'You are ' + companyData.name + ' AI assistant. Email: ' + companyData.email + ', Phone: ' + companyData.phone);
-                var resp = await fetch('https://api.openai.com/v1/chat/completions', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + chatConfig.openaiKey },
-                    body: JSON.stringify({ model: 'gpt-3.5-turbo', messages: [{ role: 'system', content: sysMsg }, { role: 'user', content: userText }], max_tokens: chatConfig.maxTokens || 200, temperature: 0.7 })
-                });
-                var data = await resp.json();
-                if (data.choices && data.choices[0]) return data.choices[0].message.content;
-            } catch (e) { console.error('OpenAI error:', e); }
-            return null;
-        }
-        function addBotMessage(body, text) {
-            var d = document.createElement('div'); d.className = 'chat-msg chat-msg-bot';
-            d.innerHTML = '<img src="centronix_logo_only.png" class="chat-msg-avatar" alt="Bot"><div class="chat-bubble chat-bubble-bot">' + text.replace(/\n/g, '<br>') + '</div>';
-            body.appendChild(d); body.scrollTop = body.scrollHeight;
-        }
-        function addUserMessage(body, text) {
-            var d = document.createElement('div'); d.className = 'chat-msg chat-msg-user';
-            d.innerHTML = '<div class="chat-bubble chat-bubble-user">' + escapeHtml(text) + '</div>';
-            body.appendChild(d); body.scrollTop = body.scrollHeight;
-        }
-        function addTypingIndicator(body) {
-            var id = 'typing-' + Date.now();
-            var d = document.createElement('div'); d.className = 'chat-msg chat-msg-bot'; d.id = id;
-            d.innerHTML = '<img src="centronix_logo_only.png" class="chat-msg-avatar" alt="Bot"><div class="chat-bubble chat-bubble-bot"><span class="typing-dots">● ● ●</span></div>';
-            body.appendChild(d); body.scrollTop = body.scrollHeight; return id;
-        }
-        async function handleChat() {
-            var input = document.getElementById('chatInput');
-            var body = document.getElementById('chatBody');
-            if (!input || !body) return;
-            var text = input.value.trim();
-            if (!text) return;
-            input.value = '';
-            addUserMessage(body, text);
-            var typingId = addTypingIndicator(body);
-            var reply = findResponse(text);
-            if (!reply && chatConfig.mode === 'ai') { try { reply = await callOpenAI(text); } catch (e) {} }
-            if (!reply) {
-                var fallback = chatConfig.fallbackMessage || '🤔 Interesting question! Contact us:\n\n📧 {email}\n📞 {phone}';
-                reply = replacePlaceholders(fallback);
-            }
-            setTimeout(function() {
-                var typEl = document.getElementById(typingId);
-                if (typEl) typEl.remove();
-                addBotMessage(body, reply);
-            }, 1200 + Math.random() * 800);
-        }
-        (function() { var ci = document.getElementById('chatInput'); if (ci) ci.addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); handleChat(); } }); })();
+// =========================================
+// 9. COUNTERS
+// =========================================
+var countersStarted = false;
+function startCounters() {
+if (countersStarted) return;
+countersStarted = true;
+var counters = document.querySelectorAll('.stat-num');
+for (var i = 0; i < counters.length; i++) {
+(function(counter) {
+var target = parseInt(counter.getAttribute('data-target')) || 0;
+var suffix = counter.getAttribute('data-suffix') || '';
+var current = 0;
+var increment = target / 80;
+var timer = setInterval(function() {
+current += increment;
+if (current >= target) { counter.innerText = target + suffix; clearInterval(timer); }
+else counter.innerText = Math.floor(current) + suffix;
+}, 25);
+})(counters[i]);
+}
+}
 
-        // =========================================
-        // 12. SERVICE MODAL
-        // =========================================
-        var serviceData = {
-            web: { icon: 'fa-solid fa-code', title: 'Web Engineering', desc: 'Enterprise-grade web applications using modern frameworks.', features: ['React & Next.js Apps', 'E-commerce Platforms', 'SaaS Dashboards', 'Progressive Web Apps', 'API Development', 'Cloud Deployment'], stack: ['React', 'Next.js', 'Node.js', 'TypeScript', 'PostgreSQL', 'AWS'] },
-            ai: { icon: 'fa-solid fa-brain', title: 'AI Integration', desc: 'Artificial intelligence to automate and create intelligent systems.', features: ['Custom ML Models', 'NLP', 'Computer Vision', 'Predictive Analytics', 'Chatbots', 'Automation'], stack: ['Python', 'TensorFlow', 'PyTorch', 'OpenAI', 'LangChain', 'FastAPI'] },
-            mobile: { icon: 'fa-solid fa-mobile-screen', title: 'Mobile Applications', desc: 'Cross-platform mobile apps for iOS and Android.', features: ['Flutter Development', 'React Native', 'App Store Deploy', 'Push Notifications', 'Offline Support', 'Analytics'], stack: ['Flutter', 'Dart', 'React Native', 'Firebase', 'SQLite', 'REST APIs'] },
-            market: { icon: 'fa-solid fa-chart-line', title: 'Digital Growth', desc: 'Data-driven marketing strategies for visibility and conversions.', features: ['SEO', 'Performance Marketing', 'Social Media', 'CRO', 'Analytics', 'Content Strategy'], stack: ['Google Analytics', 'Meta Ads', 'Google Ads', 'SEMrush', 'HubSpot', 'Hotjar'] }
-        };
+var statsEl = document.getElementById('statsGrid');
+if (statsEl && 'IntersectionObserver' in window) {
+var observer = new IntersectionObserver(function(entries) {
+if (entries[0].isIntersecting) { startCounters(); observer.unobserve(statsEl); }
+}, { threshold: 0.3 });
+observer.observe(statsEl);
+}
+
+// =========================================
+// 10. SMOOTH SCROLL
+// =========================================
+var scrollLinks = document.querySelectorAll('a[href^="#"]');
+for (var sl = 0; sl < scrollLinks.length; sl++) {
+scrollLinks[sl].addEventListener('click', function(e) {
+e.preventDefault();
+var targetId = this.getAttribute('href');
+if (!targetId || targetId === '#') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+var target = document.querySelector(targetId);
+if (target) window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 100, behavior: 'smooth' });
+});
+}
+
+// =========================================
+// 11. CHATBOT
+// =========================================
+var chatOpen = false;
+function toggleChat() {
+chatOpen = !chatOpen;
+var win = document.getElementById('chatWindow');
+if (win) { if (chatOpen) win.classList.add('active'); else win.classList.remove('active'); }
+var badge = document.getElementById('chatBadge');
+if (badge) badge.style.display = 'none';
+}
+
+function quickChat(type) {
+var msgs = { 'pricing': 'Can you tell me about pricing?', 'services': 'What services do you offer?', 'contact': 'How can I contact your team?' };
+var input = document.getElementById('chatInput');
+if (input) { input.value = msgs[type] || ''; handleChat(); }
+}
+
+function findResponse(userText) {
+var lower = userText.toLowerCase();
+for (var i = 0; i < botResponses.length; i++) {
+if (!botResponses[i].keywords) continue;
+var keys = botResponses[i].keywords.split(',');
+for (var j = 0; j < keys.length; j++) {
+var key = keys[j].trim().toLowerCase();
+if (key && lower.indexOf(key) !== -1) return replacePlaceholders(botResponses[i].response);
+}
+}
+return null;
+}
+
+async function callOpenAI(userText) {
+if (!chatConfig.openaiKey) return null;
+try {
+var sysMsg = replacePlaceholders(chatConfig.systemPrompt || 'You are ' + companyData.name + ' AI assistant. Email: ' + companyData.email + ', Phone: ' + companyData.phone);
+var resp = await fetch('https://api.openai.com/v1/chat/completions', {
+method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + chatConfig.openaiKey },
+body: JSON.stringify({ model: 'gpt-3.5-turbo', messages: [{ role: 'system', content: sysMsg }, { role: 'user', content: userText }], max_tokens: chatConfig.maxTokens || 200, temperature: 0.7 })
+});
+var data = await resp.json();
+if (data.choices && data.choices[0]) return data.choices[0].message.content;
+} catch (e) { console.error('OpenAI error:', e); }
+return null;
+}
+
+function addBotMessage(body, text) {
+var d = document.createElement('div'); d.className = 'chat-msg chat-msg-bot';
+d.innerHTML = '<img src="centronix_logo_only.png" class="chat-msg-avatar" alt="Bot"><div class="chat-bubble chat-bubble-bot">' + text.replace(/\n/g, '<br>') + '</div>';
+body.appendChild(d); body.scrollTop = body.scrollHeight;
+}
+
+function addUserMessage(body, text) {
+var d = document.createElement('div'); d.className = 'chat-msg chat-msg-user';
+d.innerHTML = '<div class="chat-bubble chat-bubble-user">' + escapeHtml(text) + '</div>';
+body.appendChild(d); body.scrollTop = body.scrollHeight;
+}
+
+function addTypingIndicator(body) {
+var id = 'typing-' + Date.now();
+var d = document.createElement('div'); d.className = 'chat-msg chat-msg-bot'; d.id = id;
+d.innerHTML = '<img src="centronix_logo_only.png" class="chat-msg-avatar" alt="Bot"><div class="chat-bubble chat-bubble-bot"><span class="typing-dots">● ● ●</span></div>';
+body.appendChild(d); body.scrollTop = body.scrollHeight; return id;
+}
+
+async function handleChat() {
+var input = document.getElementById('chatInput');
+var body = document.getElementById('chatBody');
+if (!input || !body) return;
+var text = input.value.trim();
+if (!text) return;
+input.value = '';
+addUserMessage(body, text);
+var typingId = addTypingIndicator(body);
+var reply = findResponse(text);
+if (!reply && chatConfig.mode === 'ai') { try { reply = await callOpenAI(text); } catch (e) {} }
+if (!reply) {
+var fallback = chatConfig.fallbackMessage || '💡 Interesting question! Contact us:\n\n📧 {email}\n📞 {phone}';
+reply = replacePlaceholders(fallback);
+}
+setTimeout(function() {
+var typEl = document.getElementById(typingId);
+if (typEl) typEl.remove();
+addBotMessage(body, reply);
+}, 1200 + Math.random() * 800);
+}
+
+(function() { var ci = document.getElementById('chatInput'); if (ci) ci.addEventListener('keypress', function(e) { if (e.key === 'Enter') { e.preventDefault(); handleChat(); } }); })();
+
+// =========================================
+// 12. SERVICE MODAL
+// =========================================
+var serviceData = {
+web: { icon: 'fa-solid fa-code', title: 'Web Engineering', desc: 'Enterprise-grade web applications using modern frameworks.', features: ['React & Next.js Apps', 'E-commerce Platforms', 'SaaS Dashboards', 'Progressive Web Apps', 'API Development', 'Cloud Deployment'], stack: ['React', 'Next.js', 'Node.js', 'TypeScript', 'PostgreSQL', 'AWS'] },
+ai: { icon: 'fa-solid fa-brain', title: 'AI Integration', desc: 'Artificial intelligence to automate and create intelligent systems.', features: ['Custom ML Models', 'NLP', 'Computer Vision', 'Predictive Analytics', 'Chatbots', 'Automation'], stack: ['Python', 'TensorFlow', 'PyTorch', 'OpenAI', 'LangChain', 'FastAPI'] },
+mobile: { icon: 'fa-solid fa-mobile-screen', title: 'Mobile Applications', desc: 'Cross-platform mobile apps for iOS and Android.', features: ['Flutter Development', 'React Native', 'App Store Deploy', 'Push Notifications', 'Offline Support', 'Analytics'], stack: ['Flutter', 'Dart', 'React Native', 'Firebase', 'SQLite', 'REST APIs'] },
+market: { icon: 'fa-solid fa-chart-line', title: 'Digital Growth', desc: 'Data-driven marketing strategies for visibility and conversions.', features: ['SEO', 'Performance Marketing', 'Social Media', 'CRO', 'Analytics', 'Content Strategy'], stack: ['Google Analytics', 'Meta Ads', 'Google Ads', 'SEMrush', 'HubSpot', 'Hotjar'] }
+};
 
 // =========================================
 // OPEN SERVICE DETAIL FROM FIREBASE
 // =========================================
 function openServiceDetail(index) {
-    var services = window.firebaseServices;
-    if (!services || !services[index]) {
-        // Fallback to old modal system
-        return;
-    }
-
-    var s = services[index];
-    var mb = document.getElementById('modalBody');
-    if (!mb) return;
-
-    // Build features list
-    var featHtml = '';
-    var features = s.features || '';
-    if (typeof features === 'string' && features.length > 0) {
-        var featArr = features.split('\n');
-        for (var i = 0; i < featArr.length; i++) {
-            var f = featArr[i].trim();
-            if (f) {
-                featHtml += '<li style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">' +
-                    '<i class="fa-solid fa-check" style="color:var(--accent);font-size:0.8rem;flex-shrink:0;"></i> ' +
-                    escapeHtml(f) + '</li>';
-            }
-        }
-    }
-
-    // Build tech stack
-    var stackHtml = '';
-    var techStack = s.techStack || '';
-    if (typeof techStack === 'string' && techStack.length > 0) {
-        var techArr = techStack.split(',');
-        for (var j = 0; j < techArr.length; j++) {
-            var t = techArr[j].trim();
-            if (t) {
-                stackHtml += '<span class="tech-tag">' + escapeHtml(t) + '</span>';
-            }
-        }
-    }
-
-    // Icon
-    var iconClass = s.icon || 'fa-solid fa-cog';
-
-    // Full description
-    var fullDesc = s.fullDesc || s.shortDesc || '';
-
-    mb.innerHTML =
-        '<div style="display:flex;align-items:center;gap:15px;margin-bottom:2rem;">' +
-            '<div style="width:50px;height:50px;background:var(--grad-glow);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
-                '<i class="' + iconClass + '" style="font-size:1.3rem;color:white;"></i>' +
-            '</div>' +
-            '<h2 style="font-family:\'Space Grotesk\';font-size:clamp(1.3rem,3vw,1.8rem);">' + escapeHtml(s.name || 'Service') + '</h2>' +
-        '</div>' +
-        '<p style="color:var(--text-muted);line-height:1.8;margin-bottom:2rem;font-size:0.95rem;">' + escapeHtml(fullDesc) + '</p>' +
-        (featHtml ? '<h4 style="color:white;margin-bottom:1rem;font-family:\'Space Grotesk\';">What\'s Included:</h4><ul style="list-style:none;margin-bottom:2rem;">' + featHtml + '</ul>' : '') +
-        (stackHtml ? '<h4 style="color:white;margin-bottom:1rem;font-family:\'Space Grotesk\';">Tech Stack:</h4><div style="margin-bottom:2rem;display:flex;flex-wrap:wrap;gap:8px;">' + stackHtml + '</div>' : '') +
-        '<a href="#contact" class="btn-header" onclick="closeModal()" style="display:inline-flex;padding:12px 30px;">' +
-            'Start This Project <i class="fa-solid fa-arrow-right" style="margin-left:8px;"></i>' +
-        '</a>';
-
-    var modal = document.getElementById('serviceModal');
-    if (modal) {
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
+var services = window.firebaseServices;
+if (!services || !services[index]) {
+return;
 }
-        function openModal(type) {
-            var data = serviceData[type]; if (!data) return;
-            var mb = document.getElementById('modalBody'); if (!mb) return;
-            var featHtml = ''; for (var i = 0; i < data.features.length; i++) featHtml += '<li style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;"><i class="fa-solid fa-check" style="color:var(--accent);font-size:0.8rem;flex-shrink:0;"></i> ' + data.features[i] + '</li>';
-            var stackHtml = ''; for (var j = 0; j < data.stack.length; j++) stackHtml += '<span class="tech-tag">' + data.stack[j] + '</span>';
-            mb.innerHTML = '<div style="display:flex;align-items:center;gap:15px;margin-bottom:2rem;"><div style="width:50px;height:50px;background:var(--grad-glow);border-radius:14px;display:flex;align-items:center;justify-content:center;"><i class="' + data.icon + '" style="font-size:1.3rem;color:white;"></i></div><h2 style="font-family:\'Space Grotesk\';font-size:clamp(1.3rem,3vw,1.8rem);">' + data.title + '</h2></div><p style="color:var(--text-muted);line-height:1.8;margin-bottom:2rem;">' + data.desc + '</p><h4 style="color:white;margin-bottom:1rem;font-family:\'Space Grotesk\';">What\'s Included:</h4><ul style="list-style:none;margin-bottom:2rem;">' + featHtml + '</ul><h4 style="color:white;margin-bottom:1rem;font-family:\'Space Grotesk\';">Tech Stack:</h4><div style="margin-bottom:2rem;display:flex;flex-wrap:wrap;gap:8px;">' + stackHtml + '</div><a href="#contact" class="btn-header" onclick="closeModal()" style="display:inline-flex;padding:12px 30px;">Start This Project <i class="fa-solid fa-arrow-right" style="margin-left:8px;"></i></a>';
-            var modal = document.getElementById('serviceModal');
-            if (modal) { modal.classList.add('active'); document.body.style.overflow = 'hidden'; }
-        }
-        function closeModal() { var m = document.getElementById('serviceModal'); if (m) { m.classList.remove('active'); document.body.style.overflow = ''; } }
-        document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
+var s = services[index];
+var mb = document.getElementById('modalBody');
+if (!mb) return;
 
-        // =========================================
-        // 13. CONTACT FORM
-        // =========================================
-        (function() {
-            var form = document.getElementById('contactForm');
-            if (!form) return;
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
-                var btn = document.getElementById('submitBtn');
-                var statusEl = document.getElementById('formStatus');
-                if (!btn) return;
-                var originalHTML = btn.innerHTML;
-                var nameVal = document.getElementById('formName').value.trim();
-                var emailVal = document.getElementById('formEmail').value.trim();
-                var serviceVal = document.getElementById('formService').value;
-                var budgetVal = document.getElementById('formBudget').value.trim();
-                var messageVal = document.getElementById('formMessage').value.trim();
-                if (!nameVal || !emailVal || !messageVal) { if (statusEl) { statusEl.className = 'form-status error'; statusEl.innerHTML = '❌ Please fill required fields.'; } return; }
-                if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) { if (statusEl) { statusEl.className = 'form-status error'; statusEl.innerHTML = '❌ Enter valid email.'; } return; }
-                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Sending...';
-                btn.disabled = true; btn.style.opacity = '0.7';
-                if (statusEl) { statusEl.className = 'form-status'; statusEl.innerHTML = ''; }
-                db.collection('contactSubmissions').add({
-                    name: nameVal, email: emailVal, service: serviceVal, budget: budgetVal, message: messageVal,
-                    status: 'new', source: 'website', createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                }).then(function() {
-                    btn.innerHTML = '<i class="fa-solid fa-check" style="margin-right:8px;"></i> Sent!';
-                    btn.style.background = 'linear-gradient(90deg, #22c55e, #16a34a)';
-                    if (statusEl) { statusEl.className = 'form-status success'; statusEl.innerHTML = '✅ Thank you! We\'ll respond within 24 hours.'; }
-                    form.reset();
-                    setTimeout(function() { btn.innerHTML = originalHTML; btn.style.background = ''; btn.disabled = false; btn.style.opacity = '1'; if (statusEl) { statusEl.className = 'form-status'; statusEl.innerHTML = ''; } }, 5000);
-                }).catch(function(error) {
-                    btn.innerHTML = '<i class="fa-solid fa-times" style="margin-right:8px;"></i> Failed!';
-                    btn.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
-                    if (statusEl) { statusEl.className = 'form-status error'; statusEl.innerHTML = '❌ Error. Email us at ' + companyData.email; }
-                    setTimeout(function() { btn.innerHTML = originalHTML; btn.style.background = ''; btn.disabled = false; btn.style.opacity = '1'; }, 4000);
-                });
-            });
-        })();
+var featHtml = '';
+var features = s.features || '';
+if (typeof features === 'string' && features.length > 0) {
+var featArr = features.split('\n');
+for (var i = 0; i < featArr.length; i++) {
+var f = featArr[i].trim();
+if (f) {
+featHtml += '<li style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">' +
+'<i class="fa-solid fa-check" style="color:var(--accent);font-size:0.8rem;flex-shrink:0;"></i> ' + escapeHtml(f) + '</li>';
+}
+}
+}
 
-        // =========================================
-        // 14. REALTIME LISTENERS
-        // =========================================
-        db.collection('settings').doc('company').onSnapshot(function(doc) {
-    if (!doc.exists) return;
-    var d = doc.data();
-    
-    // Update global data
-    companyData.phone = d.phone || '+94 77 123 4567';
-    companyData.email = d.email || 'hello@centronix.lk';
-    companyData.website = d.website || 'https://centronix.lk';
-    companyData.name = d.name || 'Centronix';
-    companyData.location = d.location || 'Sri Lanka';
-    companyData.whatsapp = d.socialWhatsapp || '';
+var stackHtml = '';
+var techStack = s.techStack || '';
+if (typeof techStack === 'string' && techStack.length > 0) {
+var techArr = techStack.split(',');
+for (var j = 0; j < techArr.length; j++) {
+var t = techArr[j].trim();
+if (t) {
+stackHtml += '<span class="tech-tag">' + escapeHtml(t) + '</span>';
+}
+}
+}
 
-    // Update Stats Section
-    setStatData('statProjectsNum', d.statProjects);
-    setStatData('statRetentionNum', d.statRetention);
-    setStatData('statInteractionsNum', d.statInteractions);
-    setStatData('statUptimeNum', d.statUptime);
+var iconClass = s.icon || 'fa-solid fa-cog';
+var fullDesc = s.fullDesc || s.shortDesc || '';
 
-    // Update Social Links
-    setSocialLink('footerFb', d.socialFacebook);
-    setSocialLink('footerLi', d.socialLinkedin);
-    setSocialLink('footerIg', d.socialInstagram);
-    setSocialLink('footerGh', d.socialGithub);
+mb.innerHTML =
+'<div style="display:flex;align-items:center;gap:15px;margin-bottom:2rem;">' +
+'<div style="width:50px;height:50px;background:var(--grad-glow);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">' +
+'<i class="' + iconClass + '" style="font-size:1.3rem;color:white;"></i>' +
+'</div>' +
+'<h2 style="font-family:\'Space Grotesk\';font-size:clamp(1.3rem,3vw,1.8rem);">' + escapeHtml(s.name || 'Service') + '</h2>' +
+'</div>' +
+'<p style="color:var(--text-muted);line-height:1.8;margin-bottom:2rem;font-size:0.95rem;">' + escapeHtml(fullDesc) + '</p>' +
+(featHtml ? '<h4 style="color:white;margin-bottom:1rem;font-family:\'Space Grotesk\';">What\'s Included:</h4><ul style="list-style:none;margin-bottom:2rem;">' + featHtml + '</ul>' : '') +
+(stackHtml ? '<h4 style="color:white;margin-bottom:1rem;font-family:\'Space Grotesk\';">Tech Stack:</h4><div style="margin-bottom:2rem;display:flex;flex-wrap:wrap;gap:8px;">' + stackHtml + '</div>' : '') +
+'<a href="#contact" class="btn-header" onclick="closeModal()" style="display:inline-flex;padding:12px 30px;">' +
+'Start This Project <i class="fa-solid fa-arrow-right" style="margin-left:8px;"></i>' +
+'</a>';
 
-    // Update Footer About
-    if (d.about) {
-        var fa = document.getElementById('footerAbout');
-        if (fa) fa.textContent = d.about;
-    }
+var modal = document.getElementById('serviceModal');
+if (modal) {
+modal.classList.add('active');
+document.body.style.overflow = 'hidden';
+}
+}
 
-    // Update WhatsApp link if exists
-    if (d.socialWhatsapp) {
-        var waNum = d.socialWhatsapp.replace(/[^0-9+]/g, '');
-        var waLinks = document.querySelectorAll('a[href*="wa.me"]');
-        for (var i = 0; i < waLinks.length; i++) {
-            waLinks[i].href = 'https://wa.me/' + waNum.replace('+', '');
-        }
-    }
+function openModal(type) {
+var data = serviceData[type]; if (!data) return;
+var mb = document.getElementById('modalBody'); if (!mb) return;
+var featHtml = ''; for (var i = 0; i < data.features.length; i++) featHtml += '<li style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;"><i class="fa-solid fa-check" style="color:var(--accent);font-size:0.8rem;flex-shrink:0;"></i> ' + data.features[i] + '</li>';
+var stackHtml = ''; for (var j = 0; j < data.stack.length; j++) stackHtml += '<span class="tech-tag">' + data.stack[j] + '</span>';
+mb.innerHTML = '<div style="display:flex;align-items:center;gap:15px;margin-bottom:2rem;"><div style="width:50px;height:50px;background:var(--grad-glow);border-radius:14px;display:flex;align-items:center;justify-content:center;"><i class="' + data.icon + '" style="font-size:1.3rem;color:white;"></i></div><h2 style="font-family:\'Space Grotesk\';font-size:clamp(1.3rem,3vw,1.8rem);">' + data.title + '</h2></div><p style="color:var(--text-muted);line-height:1.8;margin-bottom:2rem;">' + data.desc + '</p><h4 style="color:white;margin-bottom:1rem;font-family:\'Space Grotesk\';">What\'s Included:</h4><ul style="list-style:none;margin-bottom:2rem;">' + featHtml + '</ul><h4 style="color:white;margin-bottom:1rem;font-family:\'Space Grotesk\';">Tech Stack:</h4><div style="margin-bottom:2rem;display:flex;flex-wrap:wrap;gap:8px;">' + stackHtml + '</div><a href="#contact" class="btn-header" onclick="closeModal()" style="display:inline-flex;padding:12px 30px;">Start This Project <i class="fa-solid fa-arrow-right" style="margin-left:8px;"></i></a>';
+var modal = document.getElementById('serviceModal');
+if (modal) { modal.classList.add('active'); document.body.style.overflow = 'hidden'; }
+}
 
-    console.log('🔄 Company data updated (realtime)');
+function closeModal() { var m = document.getElementById('serviceModal'); if (m) { m.classList.remove('active'); document.body.style.overflow = ''; } }
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
 
+// =========================================
+// 13. CONTACT FORM
+// =========================================
+(function() {
+var form = document.getElementById('contactForm');
+if (!form) return;
+form.addEventListener('submit', function(e) {
+e.preventDefault();
+var btn = document.getElementById('submitBtn');
+var statusEl = document.getElementById('formStatus');
+if (!btn) return;
+var originalHTML = btn.innerHTML;
+var nameVal = document.getElementById('formName').value.trim();
+var emailVal = document.getElementById('formEmail').value.trim();
+var serviceVal = document.getElementById('formService').value;
+var budgetVal = document.getElementById('formBudget').value.trim();
+var messageVal = document.getElementById('formMessage').value.trim();
+if (!nameVal || !emailVal || !messageVal) { if (statusEl) { statusEl.className = 'form-status error'; statusEl.innerHTML = '⚠ Please fill required fields.'; } return; }
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) { if (statusEl) { statusEl.className = 'form-status error'; statusEl.innerHTML = '⚠ Enter valid email.'; } return; }
+btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="margin-right:8px;"></i> Sending...';
+btn.disabled = true; btn.style.opacity = '0.7';
+if (statusEl) { statusEl.className = 'form-status'; statusEl.innerHTML = ''; }
+db.collection('contactSubmissions').add({
+name: nameVal, email: emailVal, service: serviceVal, budget: budgetVal, message: messageVal,
+status: 'new', source: 'website', createdAt: firebase.firestore.FieldValue.serverTimestamp()
+}).then(function() {
+btn.innerHTML = '<i class="fa-solid fa-check" style="margin-right:8px;"></i> Sent!';
+btn.style.background = 'linear-gradient(90deg, #22c55e, #16a34a)';
+if (statusEl) { statusEl.className = 'form-status success'; statusEl.innerHTML = '✅ Thank you! We\'ll respond within 24 hours.'; }
+form.reset();
+setTimeout(function() { btn.innerHTML = originalHTML; btn.style.background = ''; btn.disabled = false; btn.style.opacity = '1'; if (statusEl) { statusEl.className = 'form-status'; statusEl.innerHTML = ''; } }, 5000);
+}).catch(function(error) {
+btn.innerHTML = '<i class="fa-solid fa-times" style="margin-right:8px;"></i> Failed!';
+btn.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+if (statusEl) { statusEl.className = 'form-status error'; statusEl.innerHTML = '❌ Error. Email us at ' + companyData.email; }
+setTimeout(function() { btn.innerHTML = originalHTML; btn.style.background = ''; btn.disabled = false; btn.style.opacity = '1'; }, 4000);
+});
+});
+})();
+
+// =========================================
+// 14. REALTIME LISTENERS
+// =========================================
+db.collection('settings').doc('company').onSnapshot(function(doc) {
+if (!doc.exists) return;
+var d = doc.data();
+companyData.phone = d.phone || '+94 77 123 4567';
+companyData.email = d.email || 'hello@centronix.lk';
+companyData.website = d.website || 'https://centronix.lk';
+companyData.name = d.name || 'Centronix';
+companyData.location = d.location || 'Sri Lanka';
+companyData.whatsapp = d.socialWhatsapp || '';
+setStatData('statProjectsNum', d.statProjects);
+setStatData('statRetentionNum', d.statRetention);
+setStatData('statInteractionsNum', d.statInteractions);
+setStatData('statUptimeNum', d.statUptime);
+setSocialLink('footerFb', d.socialFacebook);
+setSocialLink('footerLi', d.socialLinkedin);
+setSocialLink('footerIg', d.socialInstagram);
+setSocialLink('footerGh', d.socialGithub);
+if (d.about) {
+var fa = document.getElementById('footerAbout');
+if (fa) fa.textContent = d.about;
+}
+if (d.socialWhatsapp) {
+var waNum = d.socialWhatsapp.replace(/[^0-9+]/g, '');
+var waLinks = document.querySelectorAll('a[href*="wa.me"]');
+for (var i = 0; i < waLinks.length; i++) {
+waLinks[i].href = 'https://wa.me/' + waNum.replace('+', '');
+}
+}
+console.log('🔄 Company data updated (realtime)');
 }, function(e) { console.warn('Company listener:', e); });
 
-        db.collection('testimonials').where('status', '==', 'active').orderBy('createdAt', 'desc').onSnapshot(function(snapshot) {
-            var container = document.getElementById('testimonialsContainer');
-            if (!container) return;
-            if (snapshot.empty) { showDefaultTestimonials(); return; }
-            var html = '';
-            snapshot.forEach(function(doc) {
-                var d = doc.data();
-                var stars = ''; for (var i = 0; i < 5; i++) stars += i < (d.rating || 5) ? '★' : '☆';
-                html += '<div class="testimonial-card"><div class="testimonial-stars">' + stars + '</div><p class="testimonial-text">"' + escapeHtml(d.review || '') + '"</p><div class="testimonial-author"><div class="testimonial-avatar">' + (d.name || 'U').charAt(0).toUpperCase() + '</div><div><div class="testimonial-name">' + escapeHtml(d.name || '') + '</div><div class="testimonial-position">' + escapeHtml(d.position || '') + '</div></div></div></div>';
-            });
-            container.innerHTML = html;
-        }, function(e) { console.warn('Testimonials listener:', e); });
+db.collection('testimonials').where('status', '==', 'active').orderBy('createdAt', 'desc').onSnapshot(function(snapshot) {
+var container = document.getElementById('testimonialsContainer');
+if (!container) return;
+if (snapshot.empty) { showDefaultTestimonials(); return; }
+var html = '';
+snapshot.forEach(function(doc) {
+var d = doc.data();
+var stars = ''; for (var i = 0; i < 5; i++) stars += i < (d.rating || 5) ? '⭐ ' : '☆ ';
+html += '<div class="testimonial-card"><div class="testimonial-top"><div class="testimonial-stars">' + stars + '</div><p class="testimonial-text">"' + escapeHtml(d.review || '') + '"</p></div><div class="testimonial-author"><div class="testimonial-avatar">' + (d.name || 'U').charAt(0).toUpperCase() + '</div><div><div class="testimonial-name">' + escapeHtml(d.name || '') + '</div><div class="testimonial-position">' + escapeHtml(d.position || '') + '</div></div></div></div>';
+});
+container.innerHTML = html;
+}, function(e) { console.warn('Testimonials listener:', e); });
 
-        db.collection('settings').doc('portfolio').onSnapshot(function(doc) {
-            var section = document.getElementById('portfolioShowcase');
-            if (!section) return;
-            var isVisible = doc.exists && doc.data().visible === true;
-            if (!isVisible) { section.style.display = 'none'; section.classList.remove('visible'); }
-            else { loadPortfolioFromFirebase(); }
-        }, function(e) { console.warn('Portfolio settings:', e); });
+db.collection('settings').doc('portfolio').onSnapshot(function(doc) {
+var section = document.getElementById('portfolioShowcase');
+if (!section) return;
+var isVisible = doc.exists && doc.data().visible === true;
+if (!isVisible) { section.style.display = 'none'; section.classList.remove('visible'); }
+else { loadPortfolioFromFirebase(); }
+}, function(e) { console.warn('Portfolio settings:', e); });
 
-        db.collection('portfolio').where('status', '==', 'active').onSnapshot(function(snapshot) {
-            var section = document.getElementById('portfolioShowcase');
-            var grid = document.getElementById('portfolioGrid');
-            if (!section || !grid || section.style.display === 'none') return;
-            if (snapshot.empty) { section.style.display = 'none'; return; }
-            var html = '';
-            snapshot.forEach(function(doc) {
-                var d = doc.data();
-                var name = escapeHtml(d.name || 'Project');
-                var imgSrc = d.image || 'https://placehold.co/600x400/0f172a/334155?text=' + encodeURIComponent(name);
-                var techHtml = '';
-                if (d.tech) { d.tech.split(',').forEach(function(t) { techHtml += '<span>' + escapeHtml(t.trim()) + '</span>'; }); }
-                var linkHtml = '';
-                if (d.url) linkHtml = '<a href="' + escapeHtml(d.url) + '" target="_blank" class="portfolio-link">Visit Project →</a>';
-                html += '<div class="portfolio-card"><img src="' + imgSrc + '" alt="' + name + '" loading="lazy" onerror="this.src=\'https://placehold.co/600x400/0f172a/334155?text=Project\'"><div class="portfolio-card-info"><h3>' + name + '</h3><p>' + escapeHtml(d.description || '') + '</p><div class="portfolio-card-tags">' + techHtml + '</div>' + linkHtml + '</div></div>';
-            });
-            grid.innerHTML = html;
-        }, function(e) { console.warn('Portfolio listener:', e); });
+db.collection('portfolio').where('status', '==', 'active').onSnapshot(function(snapshot) {
+var section = document.getElementById('portfolioShowcase');
+var grid = document.getElementById('portfolioGrid');
+if (!section || !grid || section.style.display === 'none') return;
+if (snapshot.empty) { section.style.display = 'none'; return; }
+var html = '';
+snapshot.forEach(function(doc) {
+var d = doc.data();
+var name = escapeHtml(d.name || 'Project');
+var imgSrc = d.image || 'https://placehold.co/600x400/0f172a/334155?text=' + encodeURIComponent(name);
+var techHtml = '';
+if (d.tech) { d.tech.split(',').forEach(function(t) { techHtml += '<span>' + escapeHtml(t.trim()) + '</span>'; }); }
+var linkHtml = '';
+if (d.url) linkHtml = '<a href="' + escapeHtml(d.url) + '" target="_blank" class="portfolio-link">Visit Project →</a>';
+html += '<div class="portfolio-card"><img src="' + imgSrc + '" alt="' + name + '" loading="lazy" onerror="this.src=\'https://placehold.co/600x400/0f172a/334155?text=Project\'"><div class="portfolio-card-info"><h3>' + name + '</h3><p>' + escapeHtml(d.description || '') + '</p><div class="portfolio-card-tags">' + techHtml + '</div>' + linkHtml + '</div></div>';
+});
+grid.innerHTML = html;
+}, function(e) { console.warn('Portfolio listener:', e); });
 
-        db.collection('botResponses').where('status', '==', 'active').orderBy('priority', 'desc').onSnapshot(function(snapshot) {
-            botResponses = [];
-            snapshot.forEach(function(doc) { botResponses.push(doc.data()); });
-        }, function(e) { console.warn('Bot listener:', e); });
+db.collection('botResponses').where('status', '==', 'active').orderBy('priority', 'desc').onSnapshot(function(snapshot) {
+botResponses = [];
+snapshot.forEach(function(doc) { botResponses.push(doc.data()); });
+}, function(e) { console.warn('Bot listener:', e); });
 
-        db.collection('settings').doc('aiConfig').onSnapshot(function(doc) {
-            if (!doc.exists) return;
-            var d = doc.data();
-            chatConfig.mode = d.chatMode || 'stored';
-            chatConfig.openaiKey = d.openaiKey || '';
-            chatConfig.systemPrompt = d.systemPrompt || '';
-            chatConfig.maxTokens = d.maxTokens || 200;
-            chatConfig.fallbackMessage = d.fallbackMessage || '';
-        }, function(e) { console.warn('AI config listener:', e); });
+db.collection('settings').doc('aiConfig').onSnapshot(function(doc) {
+if (!doc.exists) return;
+var d = doc.data();
+chatConfig.mode = d.chatMode || 'stored';
+chatConfig.openaiKey = d.openaiKey || '';
+chatConfig.systemPrompt = d.systemPrompt || '';
+chatConfig.maxTokens = d.maxTokens || 200;
+chatConfig.fallbackMessage = d.fallbackMessage || '';
+}, function(e) { console.warn('AI config listener:', e); });
 
-        // =========================================
-        // 15. IMAGE PRELOADER
-        // =========================================
-        (function() {
-            var imgs = ['web_dev.jpg', 'ai_brain.jpg', 'mobile_app.jpg', 'marketing.jpg', 'cen1.png', 'cen2.png'];
-            for (var i = 0; i < imgs.length; i++) { var img = new Image(); img.src = imgs[i]; }
-        })();
+// =========================================
+// 15. IMAGE PRELOADER
+// =========================================
+(function() {
+var imgs = ['web_dev.jpg', 'ai_brain.jpg', 'mobile_app.jpg', 'marketing.jpg', 'cen1.png', 'cen2.png'];
+for (var i = 0; i < imgs.length; i++) { var img = new Image(); img.src = imgs[i]; }
+})();
 
-        // =========================================
-        // 16. CONSOLE
-        // =========================================
-        console.log('%c CENTRONIX ', 'background: linear-gradient(90deg, #7c3aed, #0891b2); color: white; font-size: 20px; padding: 10px 20px; border-radius: 5px;');
-        console.log('%c Architecture of Intelligence ', 'color: #06b6d4; font-size: 14px;');
-    </script>
+// =========================================
+// 16. CONSOLE
+// =========================================
+console.log('%c CENTRONIX ', 'background: linear-gradient(90deg, #7c3aed, #0891b2); color: white; font-size: 20px; padding: 10px 20px; border-radius: 5px;');
+console.log('%c Architecture of Intelligence ', 'color: #06b6d4; font-size: 14px;');
+</script>
 </body>
 </html>
-
-
-
